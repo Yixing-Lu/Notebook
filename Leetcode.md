@@ -173,7 +173,7 @@ class Solution {
 
 ### 143. Reorder List
 
-![IMG_0600](/Users/yixing/Downloads/IMG_0600.PNG)
+![IMG_0600](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_0600.PNG)
 
 Fast-slow: slow is the head of 2nd part, 1st part will be shorter if odd
 
@@ -303,7 +303,7 @@ class Solution {
 
 ### 24. Swap Nodes in Pairs
 
-![IMG_7F598179F403-1](/Users/yixing/Downloads/IMG_7F598179F403-1.jpeg)
+![IMG_7F598179F403-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_7F598179F403-1.jpeg)
 
 creat a dummy node, use Prev-curr-then to reorder,
 
@@ -698,7 +698,7 @@ class Solution {
 
 ### 75. Sort Colors
 
-![IMG_11EB4C8E09DD-1](/Users/yixing/Downloads/IMG_11EB4C8E09DD-1.jpeg)
+<img src="/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_11EB4C8E09DD-1.jpeg" alt="IMG_11EB4C8E09DD-1" style="zoom:50%;" />
 
 Balls with index < low are red, balls with index > high are green
 
@@ -1222,7 +1222,7 @@ class Solution {
 
 ### 1060. Missing Element in Sorted Array
 
-![IMG_62AD1C89A177-1](/Users/yixing/Downloads/IMG_62AD1C89A177-1.jpeg)
+<img src="/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_62AD1C89A177-1.jpeg" alt="IMG_62AD1C89A177-1" style="zoom:50%;" />
 
 First, find out number of missing before each element in array using nums[i] - nums[0] - i
 
@@ -1319,7 +1319,7 @@ queue.offerLast() // add to last
 
 
 
-![IMG_C07B58FD9B19-1](/Users/yixing/Downloads/IMG_C07B58FD9B19-1.jpeg)
+<img src="/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_C07B58FD9B19-1.jpeg" alt="IMG_C07B58FD9B19-1" style="zoom:50%;" />
 
 have two pointers: left and right, and then **find the longest subarray for every right pointer (iterate it) by shrinking left pointer.** And return the longest one among them.
 
