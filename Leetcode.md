@@ -1483,3 +1483,30 @@ class Solution {
 
 
 
+### 424. Longest Repeating Character Replacement
+
+Use maxCount to record max number of char in current subarray
+
+when length of current subarray(right - left + 1), length - maxCount > k, means that we canno change all char in subarray to same char, so need to update left pointer.
+
+Trick part is that, the maxcount may be wrong at some point.
+
+```java
+class Solution {
+    public int characterReplacement(String s, int k) {
+        int res = 0, left = 0, maxCount = 0;
+        int[] count = new int[26];
+        for(int right = 0; right < s.length(); right++){
+            count[s.charAt(right) - 'A']++;
+            maxCount = Math.max(maxCount, count[s.charAt(right) - 'A']);
+            while(right - left + 1 - maxCount > k){
+                count[s.charAt(left) - 'A']--;
+                left++;
+            }
+            res = Math.max(res, right - left + 1);
+        }
+        return res;
+    }
+}
+```
+
