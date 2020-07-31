@@ -1510,3 +1510,105 @@ class Solution {
 }
 ```
 
+
+
+### 159. Longest Substring with At Most Two Distinct Characters
+
+use count to record number of char in current subarray, use diffCount to record how many diff char in subarray
+
+```java
+class Solution {
+    public int lengthOfLongestSubstringTwoDistinct(String s) {
+        int res = 0;
+        int left = 0;
+        int[] count = new int[100];
+        int diffCount = 0;
+        for(int right = 0; right < s.length(); right++){
+            int cRight = s.charAt(right) - 'A';
+            if(count[cRight] == 0)
+                diffCount++;
+            count[cRight]++;
+            while(diffCount > 2){
+                int cLeft = s.charAt(left) - 'A';
+                count[cLeft]--;
+                if(count[cLeft]==0)
+                    diffCount--;
+                left++;
+            }
+            res = Math.max(res, right - left + 1);
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 76. Minimum Window Substring
+
+use count to record the demand, when new element at right index occur, use -- to meet the demand
+
+keep shrink the left pointer while it meets the demand(count[s.charAt(left) - 'A'] < 0)
+
+
+
+```JAVA
+class Solution {
+    public String minWindow(String s, String t) {
+        String res = s;
+        boolean flag = false;
+        
+        int[] count = new int[100];
+        for(int i = 0; i < t.length(); i++){
+            count[t.charAt(i) - 'A']++;
+        }
+        
+        int left = 0; 
+        for(int right = 0; right < s.length(); right++){
+            count[s.charAt(right) - 'A']--;
+            
+            while(left < s.length() && count[s.charAt(left) - 'A'] < 0){
+                count[s.charAt(left) - 'A']++;
+                left++;
+            }
+            
+            if(isValid(count) && res.length() >= right - left + 1){
+                res = s.substring(left,right+1);
+                flag = true;
+            }
+        }
+        
+        return flag? res : "";
+    }
+    private boolean isValid(int[] count){
+        for(int c: count)
+            if (c > 0)
+                return false;
+        return true;
+    }
+}
+```
+
+```java
+int left = 0;
+int count = 0;
+int res = 0;
+for(int right = 0; right < n; right++){
+  // update state when add nums[right]
+  count++;
+
+  while(condition){
+    // update state when remove nums[left] 
+    count--;
+    
+    // shrink left
+    left++;
+  }
+  
+  // update res
+  res = right - left + 1;
+}
+// condition1: while doesn't meet the requirement, keep shrink until meet
+// condition2: always meet, keep shrink when meet the requirement.
+```
+
