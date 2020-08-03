@@ -395,42 +395,7 @@ class Solution {
 
 
 
-# Two Pointer(10)
-
-### 3. Longest Substring Without Repeating Characters
-
-Use set to record current longest substring, update the max res.
-
-move forward fast, if fast char not in set, add it
-
-if fast char in set, remove one by one from head until can add char at j.
-
-Set: contains(), add(), remove(), size()
-
-String: charAt(), length()
-
-```java
-class Solution {
-    public int lengthOfLongestSubstring(String s) {
-        int slow = 0, fast = 0;
-        HashSet<Character> set = new HashSet<Character>();
-        int res = 0;
-        while(fast != s.length()) {
-            if (!set.contains(s.charAt(fast))){
-                set.add(s.charAt(fast));
-                fast++;
-                res = Math.max(res, set.size());
-            } else {
-                set.remove(s.charAt(slow));
-                slow++;
-            }
-        }
-        return res;
-    }
-}
-```
-
-
+# Two Pointer(8)
 
 ### 15. 3Sum
 
@@ -477,6 +442,62 @@ class Solution {
 
 
 
+### 16. 3Sum Closest
+
+sort first, then use BS to find the closet pair.
+
+```java
+class Solution {
+    public int threeSumClosest(int[] nums, int target) {
+        int res = nums[0] + nums[1] + nums[2];
+        Arrays.sort(nums);
+        for(int i = 0; i < nums.length - 2; i++){
+            int lo = i + 1;
+            int hi = nums.length - 1;
+            while(lo < hi){
+                int sum = nums[lo] + nums[hi] + nums[i];
+                if (Math.abs(target - sum) < Math.abs(target - res)) {
+                    res = sum;
+                }
+                if (sum < target){
+                    lo++;
+                } else {
+                    hi--;
+                }
+                
+            }
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 11. Container With Most Water
+
+set the baseline using left and right, move inside to find better one.
+
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int i = 0, j = height.length - 1;
+        int res = 0;
+        while(i < j){
+            res = Math.max(res, (j - i) * Math.min(height[i],height[j]));
+            if(height[i] < height[j]){
+                i+=1;
+            } else {
+                j-=1;
+            }
+        }
+        return res;
+    }
+}
+```
+
+
+
 ### 763. Partition Labels
 
 int[] map = new int[26];
@@ -505,30 +526,6 @@ class Solution {
             if(last == i){
                 res.add(last - start + 1);
                 start = last + 1;
-            }
-        }
-        return res;
-    }
-}
-```
-
-
-
-### 11. Container With Most Water
-
-set the baseline using left and right, move inside to find better one.
-
-```java
-class Solution {
-    public int maxArea(int[] height) {
-        int i = 0, j = height.length - 1;
-        int res = 0;
-        while(i < j){
-            res = Math.max(res, (j - i) * Math.min(height[i],height[j]));
-            if(height[i] < height[j]){
-                i+=1;
-            } else {
-                j-=1;
             }
         }
         return res;
@@ -571,33 +568,6 @@ class Solution {
             if(minend == b[1]) j++;
         }
         return res.toArray(new int[res.size()][2]);
-    }
-}
-```
-
-
-
-### 209. Minimum Size Subarray Sum
-
-keep add new element at j to sum
-
-While the sum >= target, remove from head
-
-```java
-class Solution {
-    public int minSubArrayLen(int s, int[] nums) {
-        if(nums == null || nums.length ==0) return 0;
-        int i = 0, j = 0, res = Integer.MAX_VALUE, sum = 0;
-        while(j < nums.length){
-            sum += nums[j];
-            while(sum >= s){
-                res = Math.min(res, j - i + 1);
-                sum -= nums[i];
-                i++;
-            }
-            j++;
-        }
-        return res == Integer.MAX_VALUE? 0 : res;
     }
 }
 ```
@@ -658,38 +628,6 @@ class Solution {
             fast = nums[fast];
         }
         return slow;
-    }
-}
-```
-
-
-
-### 16. 3Sum Closest
-
-sort first, then use BS to find the closet pair.
-
-```java
-class Solution {
-    public int threeSumClosest(int[] nums, int target) {
-        int res = nums[0] + nums[1] + nums[2];
-        Arrays.sort(nums);
-        for(int i = 0; i < nums.length - 2; i++){
-            int lo = i + 1;
-            int hi = nums.length - 1;
-            while(lo < hi){
-                int sum = nums[lo] + nums[hi] + nums[i];
-                if (Math.abs(target - sum) < Math.abs(target - res)) {
-                    res = sum;
-                }
-                if (sum < target){
-                    lo++;
-                } else {
-                    hi--;
-                }
-                
-            }
-        }
-        return res;
     }
 }
 ```
@@ -793,24 +731,49 @@ class TimeMap {
 
 # Binary Search(9)
 
-### 33. Search in Rotated Sorted Array
+**Pattern 1: only one possible solution**
 
 ```java
 while(left <= right){
-  int pivot = (left + right) / 2;
-  // add return condition
-  if(nums[pivot] > nums[pivot + 1]){
-    return pivot + 1;
+  if(){
+    return
   }
-  if (nums[pivot] < nums[left]){
-    right = pivot - 1;
+  if(){
+    left = mid + 1;
   } else {
-    left = pivot + 1;
+    right = mid - 1;
   }
 }
 ```
 
+**Pattern 2: multi possible solution, only one best**
 
+```java
+while(left < right){
+  if(){
+    left = mid + 1; // right = mid - 1;
+  } else {
+    right = mid; // left = mid;
+  }
+}
+// left == right
+```
+
+``` java
+mid = (left + right) / 2 // [left,right], mid will be left
+left = mid // cannot decrease search range
+  
+mid = (left + right + 1) / 2 // [left,right], mid will be right
+right = mid // cannot decrease search range
+  
+// For simplify:
+when left = mid occur, we need use +1;
+otherwise, use not +1 as default
+```
+
+
+
+### 33. Search in Rotated Sorted Array
 
 ```java
 class Solution {
@@ -911,21 +874,6 @@ however, for test case`[5 7], target = 5`, mid = i, i = mid, need keep the searc
 
 so use `mid = (i+j+1)/2`
 
-```java
-while(lo < hi){
-  int m = (lo + hi) / 2; // biased towards the left
-  int m = (lo + hi + 1) / 2; // biased towards the right
-  if (nums[m] < target) {
-    lo = m + 1;
-  } else {
-    hi = m;
-  }
-}
-// when while break, lo = hi.
-```
-
-
-
 
 
 ```java
@@ -939,7 +887,7 @@ class Solution {
             int m = (lo + hi) / 2;
             if (nums[m] < target) {
                 lo = m + 1;
-            } else {
+            } else { // nums[m] >= target
                 hi = m;
             }
         }
@@ -952,8 +900,8 @@ class Solution {
             int m = (lo + hi + 1) / 2;
             if (nums[m] > target) {
                 hi = m - 1;
-            } else {
-                lo = m;
+            } else { // nums[m] <= target
+                 lo = m;
             }
         }
         if (nums[lo] == target)
@@ -1133,56 +1081,13 @@ class Solution {
             }
             if (day > D){
                 left = mid + 1;
-            } else {
+            } else { // day <= D, meet 
                 right = mid;
             }
         }
         return left;
     }
 }
-```
-
-
-
-**Pattern 1: only one possible solution**
-
-```java
-while(left <= right){
-  if(){
-    return
-  }
-  if(){
-    left = mid + 1;
-  } else {
-    right = mid - 1;
-  }
-}
-```
-
-**Pattern 2: multi possible solution, only one best**
-
-```java
-while(left < right){
-  if(){
-    left = mid + 1; // right = mid - 1;
-  } else {
-    right = mid; // left = mid;
-  }
-}
-// left == right
-```
-
-``` java
-mid = (left + right) / 2 // [left,right], mid will be left
-left = mid // cannot decrease search range
-  
-mid = (left + right + 1) / 2 // [left,right], mid will be right
-right = mid // cannot decrease search range
-  
-// For simplify:
-when left = mid occur, we need use +1;
-otherwise, use not +1 as default
-
 ```
 
 
@@ -1209,7 +1114,7 @@ class Solution {
                 // divisor is too small
                 // need larger divisor
                 left = mid + 1;
-            } else{
+            } else{ // sum <= threshold: meet require
                 right = mid;
             }
         }
@@ -1260,7 +1165,32 @@ class Solution {/2
 
 
 
-# Sliding window
+# Sliding window(10)
+
+```java
+int left = 0;
+int count = 0;
+int res = 0;
+for(int right = 0; right < n; right++){
+  // update state when add nums[right]
+  count++;
+
+  while(condition){
+    // update state when remove nums[left] 
+    count--;
+    
+    // shrink left
+    left++;
+  }
+  
+  // update res
+  res = right - left + 1;
+}
+// condition1: while doesn't meet the requirement, keep shrink until meet, update res
+// condition2: always meet, keep shrink when meet the requirement, judge and update res
+```
+
+
 
 ### 239. Sliding Window Maximum
 
@@ -1544,13 +1474,69 @@ class Solution {
 
 
 
+### 3. Longest Substring Without Repeating Characters
+
+record current longest substring, update the max res.
+
+keep shrink left when thre are multi repeating char in current subarray
+
+```java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        HashSet<Character> set = new HashSet<Character>();
+        int res = 0;
+        int slow = 0;
+        int[] count = new int[1000];
+        for(int fast = 0; fast < s.length(); fast++){
+            count[s.charAt(fast)-'A']++;
+            while(count[s.charAt(fast)-'A']>1){
+                count[s.charAt(slow)-'A']--;
+                slow++;
+            }
+            res = Math.max(res, fast - slow + 1);
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 209. Minimum Size Subarray Sum
+
+keep shrink when meet the require,
+
+need judge before update res
+
+```java
+class Solution {
+    public int minSubArrayLen(int s, int[] nums) {
+        int left = 0, res = nums.length, sum = 0;
+        boolean flag = false;
+        for(int right = 0; right < nums.length; right++){
+            sum += nums[right];
+            while(sum - nums[left] >= s){
+                sum -= nums[left];
+                left++;
+            }
+            if(sum >= s){
+                res = Math.min(res, right - left + 1);
+                flag = true;
+            }
+                
+        }
+        return flag ? res : 0;
+    }
+}
+```
+
+
+
 ### 76. Minimum Window Substring
 
 use count to record the demand, when new element at right index occur, use -- to meet the demand
 
 keep shrink the left pointer while it meets the demand(count[s.charAt(left) - 'A'] < 0)
-
-
 
 ```JAVA
 class Solution {
@@ -1589,26 +1575,192 @@ class Solution {
 }
 ```
 
-```java
-int left = 0;
-int count = 0;
-int res = 0;
-for(int right = 0; right < n; right++){
-  // update state when add nums[right]
-  count++;
 
-  while(condition){
-    // update state when remove nums[left] 
-    count--;
-    
-    // shrink left
-    left++;
-  }
-  
-  // update res
-  res = right - left + 1;
+
+# Stack
+
+### 20. Valid Parentheses
+
+```java
+String s;
+s.toCharArray();
+Stack s;
+s.isEmpty(), s.pop(), s.push()
+```
+
+
+
+```java
+class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        for(char c: s.toCharArray()){
+            if(c == '('){
+                stack.push(')');
+            } else if (c =='{'){
+                stack.push('}');
+            } else if (c =='[') {
+                stack.push(']');
+            } else {
+                if (stack.isEmpty())
+                    return false;
+                char t = stack.pop();
+                if(t != c){
+                    return false;
+                }
+            }
+        }
+        return stack.isEmpty();
+    }
 }
-// condition1: while doesn't meet the requirement, keep shrink until meet
-// condition2: always meet, keep shrink when meet the requirement.
+```
+
+
+
+### 1249. Minimum Remove to Make Valid Parentheses
+
+```java
+StringBuilder sb = new StringBuilder(s);
+sb.setCharAt(i, '*');
+sb.toString().replaceAll("\\*","");
+```
+
+mark all the char that need to be removed as *, and replace with "" in the end
+
+to find all the index, push index of ( into stack 
+
+when meet ), pop; if stack is empty, mark current index.
+
+in the end, the index of ( in stack need to be removed.
+
+```java
+class Solution {
+    public String minRemoveToMakeValid(String s) {
+        Stack<Integer> stack = new Stack<>();
+        StringBuilder sb = new StringBuilder(s);
+        for(int i = 0; i < s.length(); i++){
+            char c = s.charAt(i);
+            if(c=='('){
+                stack.push(i);
+            }
+            else if (c==')'){
+                if(!stack.isEmpty()){
+                    stack.pop();
+                } else{
+                    sb.setCharAt(i, '*');
+                }
+            }
+        }
+        while(!stack.isEmpty()){
+            int i = stack.pop();
+            sb.setCharAt(i,'*');
+        }
+        return sb.toString().replaceAll("\\*","");
+    }
+}
+```
+
+
+
+### 739. Daily Temperatures
+
+when meet a larger temp, keep pop the top ones and record the distance of index
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] T) {
+        int[] res = new int[T.length];
+        Stack<Integer> stack = new Stack<>();
+        for(int i = 0; i < T.length; i++){
+            while(!stack.isEmpty() && T[stack.peek()] < T[i] ){
+                int index = stack.pop();
+                res[index] = i - index;
+            }
+            stack.push(i);
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 735. Asteroid Collision
+
+```java
+class Solution {
+    public int[] asteroidCollision(int[] asteroids) {
+        Stack<Integer> stack = new Stack<>();
+        for(int a: asteroids){
+            if(!stack.isEmpty() && a < 0 && stack.peek() > 0){ // - +
+                // 5 -1 do nothing
+                collision:{// 5 -10 or 5 -5
+                    while(!stack.isEmpty() && stack.peek() > 0 && -a >= stack.peek()){
+                        if(-a == stack.peek()){// 5 -5
+                            stack.pop();
+                            break collision;
+                        }
+                        stack.pop();
+                    }
+                    // when stop, (10 -5) or (- -) or (null -)
+                    if(stack.isEmpty() || stack.peek() < 0)
+                        stack.push(a);
+                }
+            } else {
+                stack.push(a);
+            }
+        }
+        return stack.stream().mapToInt(x -> x).toArray();
+    }
+}
+```
+
+
+
+# Recursion
+
+### 394. Decode String
+
+```java
+Character.isDigit(c)
+s.toCharArray()
+StringBuilder sb = new StringBuilder()
+sb.append(tmp)
+sb.toString()
+```
+
+define the helper to handle case: ab23[xxx]
+
+```java
+class Solution {
+    public String decodeString(String s) {
+        Deque<Character> queue = new ArrayDeque<>();
+        for(char c: s.toCharArray()){
+            queue.offer(c);
+        }
+        return helper(queue);
+    }
+    private String helper(Deque<Character> queue){
+        int num = 0;
+        StringBuilder sb = new StringBuilder();
+        while(!queue.isEmpty()){
+            char c = queue.poll();
+            if(Character.isDigit(c)){
+                num = num * 10 + c - '0';
+            } else if (c == '['){
+                String tmp = helper(queue);
+                for(int i = 0; i < num; i++){
+                    sb.append(tmp);
+                }
+                num = 0;
+            } else if (c == ']'){
+                break;
+            } else {
+                sb.append(c);
+            }
+        } 
+        return sb.toString();
+    }
+}
 ```
 
