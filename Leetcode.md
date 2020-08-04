@@ -1,4 +1,33 @@
-# Linked List(11)
+# Linked List(10)
+
+### 138. Copy List with Random Pointer
+
+Deep copy list with random pointer: create a map from node of input to new node. Iterative second to link the next and random. Get next and random from map(node.next).
+
+```java
+class Solution {
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+        HashMap<Node, Node> map = new HashMap<Node, Node>();
+        Node node = head;
+        while(node != null) {
+            map.put(node, new Node(node.val));
+            node = node.next;
+        }
+        node = head;
+        while(node != null) {
+            map.get(node).next = map.get(node.next);
+            map.get(node).random = map.get(node.random);
+            node = node.next;
+        }
+        return map.get(head);
+    }
+}
+```
+
+
+
+## Sum using carry
 
 ### 2. Add Two Numbers
 
@@ -29,35 +58,6 @@ class Solution {
     }
 }
 ```
-
-
-
-### 138. Copy List with Random Pointer
-
-Deep copy list with random pointer: create a map from node of input to new node. Iterative second to link the next and random. Get next and random from map(node.next).
-
-```java
-class Solution {
-    public Node copyRandomList(Node head) {
-        if (head == null) return null;
-        HashMap<Node, Node> map = new HashMap<Node, Node>();
-        Node node = head;
-        while(node != null) {
-            map.put(node, new Node(node.val));
-            node = node.next;
-        }
-        node = head;
-        while(node != null) {
-            map.get(node).next = map.get(node.next);
-            map.get(node).random = map.get(node.random);
-            node = node.next;
-        }
-        return map.get(head);
-    }
-}
-```
-
-
 
 ### 445. Add Two Numbers II
 
@@ -92,6 +92,30 @@ class Solution {
             res = newNode;
         }
         return res.next;
+    }
+}
+```
+
+
+
+## Reverse use Prev, Curr, Next
+
+### 206. Reverse Linked List
+
+reverse: prev-curr-next: 1. set next. 2. set backward pointer. 3. move prev and curr
+
+```java
+class Solution {
+    public ListNode reverseList(ListNode head) {
+        if (head==null) return null;
+        ListNode prev = null, curr = head, next = curr.next;
+        while(curr!=null) {
+            next = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = next;
+        }
+        return prev;
     }
 }
 ```
@@ -147,29 +171,35 @@ class Solution {
 
 
 
-## 206. Reverse Linked List
+### 24. Swap Nodes in Pairs
 
-reverse: prev-curr-next: 1. set next. 2. set backward pointer. 3. move prev and curr
+<img src="./images/IMG_7F598179F403-1.jpeg" alt="IMG_7F598179F403-1" style="zoom:50%;" />
+
+creat a dummy node, use Prev-curr-then to reorder,
 
 ```java
 class Solution {
-    public ListNode reverseList(ListNode head) {
-        if (head==null) return null;
-        ListNode prev = null, curr = head, next = curr.next;
-        while(curr!=null) {
-            next = curr.next;
-            curr.next = prev;
+    public ListNode swapPairs(ListNode head) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode prev = dummy, curr = head, then = null;
+        while(curr != null && curr.next != null){
+            then = curr.next;
+            curr.next = then.next;
+            then.next = prev.next;
+            prev.next = then;
+            
             prev = curr;
-            curr = next;
+            curr = curr.next;
         }
-        return prev;
+        return dummy.next;
     }
 }
 ```
 
 
 
-
+## Reorder using pointer
 
 ### 143. Reorder List
 
@@ -272,57 +302,32 @@ class Solution {
 
 
 
-## 19. Remove Nth Node From End of List
+### 86. Partition List
 
-use slow.next = slow.next.next to delete
+create 2 new linkedlist to store elements smaller and larger, then merge together.
 
-need to create a dummy node before the input, otherwise cannot delete the first element.
-
-Fast-slow: fast move n+1 step more than slow.
+remember to modify the next of the last element in l2.
 
 ```java
 class Solution {
-    public ListNode removeNthFromEnd(ListNode head, int n) {
-        ListNode start = new ListNode(0);
-        start.next = head;
-        ListNode slow = start, fast = start;
-        for(int i = 0; i < n+1; i++){
-            fast = fast.next;
+    public ListNode partition(ListNode head, int x) {
+        ListNode dummy1 = new ListNode(0);
+        ListNode dummy2 = new ListNode(0);
+        ListNode l1 = dummy1;
+        ListNode l2 = dummy2;
+        while(head != null){
+            if (head.val < x){
+                l1.next = head;
+                l1 = l1.next;
+            } else {
+                l2.next = head;
+                l2 = l2.next;
+            }
+            head = head.next;
         }
-        while(fast != null){
-            slow = slow.next;
-            fast = fast.next;
-        }
-        slow.next = slow.next.next;
-        return start.next;
-    }
-}
-```
-
-
-
-### 24. Swap Nodes in Pairs
-
-<img src="./images/IMG_7F598179F403-1.jpeg" alt="IMG_7F598179F403-1" style="zoom:50%;" />
-
-creat a dummy node, use Prev-curr-then to reorder,
-
-```java
-class Solution {
-    public ListNode swapPairs(ListNode head) {
-        ListNode dummy = new ListNode(0);
-        dummy.next = head;
-        ListNode prev = dummy, curr = head, then = null;
-        while(curr != null && curr.next != null){
-            then = curr.next;
-            curr.next = then.next;
-            then.next = prev.next;
-            prev.next = then;
-            
-            prev = curr;
-            curr = curr.next;
-        }
-        return dummy.next;
+        l1.next = dummy2.next;
+        l2.next = null;
+        return dummy1.next;
     }
 }
 ```
@@ -363,39 +368,9 @@ class Solution {
 
 
 
-### 86. Partition List
+# Two Pointer(9)
 
-create 2 new linkedlist to store elements smaller and larger, then merge together.
-
-remember to modify the next of the last element in l2.
-
-```java
-class Solution {
-    public ListNode partition(ListNode head, int x) {
-        ListNode dummy1 = new ListNode(0);
-        ListNode dummy2 = new ListNode(0);
-        ListNode l1 = dummy1;
-        ListNode l2 = dummy2;
-        while(head != null){
-            if (head.val < x){
-                l1.next = head;
-                l1 = l1.next;
-            } else {
-                l2.next = head;
-                l2 = l2.next;
-            }
-            head = head.next;
-        }
-        l1.next = dummy2.next;
-        l2.next = null;
-        return dummy1.next;
-    }
-}
-```
-
-
-
-# Two Pointer(8)
+## Shrink left or right
 
 ### 15. 3Sum
 
@@ -498,6 +473,97 @@ class Solution {
 
 
 
+## Fast-slow
+
+### 142. Linked List Cycle II
+
+use slow and fast to detect a cycle
+
+Put slow back to head, put fast at the intersect, move at same speed, meet at the entry point
+
+```java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        ListNode intersect = getIntersect(head);
+        if (intersect == null) return null;
+        ListNode p1 = head, p2 = intersect;
+        while(p1 != p2){
+            p1 = p1.next;
+            p2 = p2.next;
+        }
+        return p1;
+    }
+    private ListNode getIntersect(ListNode head) {
+        ListNode tortoise = head, hare = head;
+        while(hare!=null && hare.next !=null){
+            tortoise = tortoise.next;
+            hare = hare.next.next;
+            if(tortoise == hare){
+                return tortoise;
+            }
+        }
+        return null;
+    }
+}
+```
+
+
+
+### 287. Find the Duplicate Number
+
+when there is a duplicate number, there will be two maps to the same one, it is a cycle. Use list cycle to detect the entry point, which is mapped by two index.
+
+run 1 step before the while to avoid.
+
+```java
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int slow = nums[0], fast = nums[nums[0]];
+        while(slow != fast){
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+        }
+        slow = 0;
+        while(slow != fast){
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+        return slow;
+    }
+}
+```
+
+
+
+### 19. Remove Nth Node From End of List
+
+use slow.next = slow.next.next to delete
+
+need to create a dummy node before the input, otherwise cannot delete the first element.
+
+Fast-slow: fast move n+1 step more than slow.
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode start = new ListNode(0);
+        start.next = head;
+        ListNode slow = start, fast = start;
+        for(int i = 0; i < n+1; i++){
+            fast = fast.next;
+        }
+        while(fast != null){
+            slow = slow.next;
+            fast = fast.next;
+        }
+        slow.next = slow.next.next;
+        return start.next;
+    }
+}
+```
+
+## Interval
+
 ### 763. Partition Labels
 
 int[] map = new int[26];
@@ -574,65 +640,7 @@ class Solution {
 
 
 
-### 142. Linked List Cycle II
-
-use slow and fast to detect a cycle
-
-Put slow back to head, put fast at the intersect, move at same speed, meet at the entry point
-
-```java
-public class Solution {
-    public ListNode detectCycle(ListNode head) {
-        ListNode intersect = getIntersect(head);
-        if (intersect == null) return null;
-        ListNode p1 = head, p2 = intersect;
-        while(p1 != p2){
-            p1 = p1.next;
-            p2 = p2.next;
-        }
-        return p1;
-    }
-    private ListNode getIntersect(ListNode head) {
-        ListNode tortoise = head, hare = head;
-        while(hare!=null && hare.next !=null){
-            tortoise = tortoise.next;
-            hare = hare.next.next;
-            if(tortoise == hare){
-                return tortoise;
-            }
-        }
-        return null;
-    }
-}
-```
-
-
-
-### 287. Find the Duplicate Number
-
-when there is a duplicate number, there will be two maps to the same one, it is a cycle. Use list cycle to detect the entry point, which is mapped by two index.
-
-run 1 step before the while to avoid.
-
-```java
-class Solution {
-    public int findDuplicate(int[] nums) {
-        int slow = nums[0], fast = nums[nums[0]];
-        while(slow != fast){
-            slow = nums[slow];
-            fast = nums[nums[fast]];
-        }
-        slow = 0;
-        while(slow != fast){
-            slow = nums[slow];
-            fast = nums[fast];
-        }
-        return slow;
-    }
-}
-```
-
-
+## Safe area
 
 ### 75. Sort Colors
 
@@ -771,7 +779,7 @@ when left = mid occur, we need use +1;
 otherwise, use not +1 as default
 ```
 
-
+## <= if A[mid] unique
 
 ### 33. Search in Rotated Sorted Array
 
@@ -828,87 +836,6 @@ class Solution {
             }
         }
         return -1;
-    }
-}
-```
-
-
-
-### 34. Find First and Last Position of Element in Sorted Array
-
-**For first poisition**
-
-We initialize the range to [i=0, j=n-1]. In each step, calculate the middle element [mid = (i+j)/2]. Now according to the relative value of A[mid] to target, there are three possibilities:
-
-If A[mid] < target, then the range must begins on the right of mid (hence i = mid+1 for the next iteration)
-If A[mid] > target, it means the range must begins on the left of mid (j = mid-1)
-If A[mid] = target, then the range must begins on the left of or at mid (j= mid)
-
-so: if A[mid] < target: i = mid+1; if A[mid]>=target: j = mid
-
-then testcase
-
-```
-case 1: [5 7] (A[i] = target < A[j])
-case 2: [5 3] (A[i] = target > A[j])
-case 3: [5 5] (A[i] = target = A[j])
-case 4: [3 5] (A[j] = target > A[i])
-case 5: [3 7] (A[i] < target < A[j])
-case 6: [3 4] (A[i] < A[j] < target)
-case 7: [6 7] (target < A[i] < A[j])
-```
-
-for case 1, 2, 3: mid = i; A[mid] = target, so j = mid; so i = j = mid, and A[i] = target
-
-for case 4:  mid = i; A[mid] < target, so i = mid+1; so i = j = mid + 1, and A[i] = target
-
-**For last poisition**
-
-1. If A[mid] > target, then the range must begins on the ***left*** of mid (j = mid-1)
-2. If A[mid] < target, then the range must begins on the ***right*** of mid (hence i = mid+1 for the next iteration)
-3. If A[mid] = target, then the range must begins ***on the right of or at*** mid (i= mid)
-
-so: if A[mid] <= target: i = mid; if A[mid]>target: j = mid - 1
-
-however, for test case`[5 7], target = 5`, mid = i, i = mid, need keep the search range moving,
-
-so use `mid = (i+j+1)/2`
-
-
-
-```java
-class Solution {
-    public int[] searchRange(int[] nums, int target) {
-        if (nums.length == 0)
-            return new int[]{-1,-1};
-        int[] res = new int[2];
-        int lo = 0, hi = nums.length - 1;
-        while(lo < hi){
-            int m = (lo + hi) / 2;
-            if (nums[m] < target) {
-                lo = m + 1;
-            } else { // nums[m] >= target
-                hi = m;
-            }
-        }
-        if (nums[lo] == target)
-            res[0] = lo;
-        else 
-            res[0] = -1;
-        hi = nums.length - 1;
-        while(lo < hi) {
-            int m = (lo + hi + 1) / 2;
-            if (nums[m] > target) {
-                hi = m - 1;
-            } else { // nums[m] <= target
-                 lo = m;
-            }
-        }
-        if (nums[lo] == target)
-            res[1] = lo;
-        else 
-            res[1] = -1;
-        return res;
     }
 }
 ```
@@ -1018,6 +945,89 @@ class Solution {
                 hi = mid - 1;
         }
         return false;
+    }
+}
+```
+
+
+
+## < if A[mid] not unique
+
+### 34. Find First and Last Position of Element in Sorted Array
+
+**For first poisition**
+
+We initialize the range to [i=0, j=n-1]. In each step, calculate the middle element [mid = (i+j)/2]. Now according to the relative value of A[mid] to target, there are three possibilities:
+
+If A[mid] < target, then the range must begins on the right of mid (hence i = mid+1 for the next iteration)
+If A[mid] > target, it means the range must begins on the left of mid (j = mid-1)
+If A[mid] = target, then the range must begins on the left of or at mid (j= mid)
+
+so: if A[mid] < target: i = mid+1; if A[mid]>=target: j = mid
+
+then testcase
+
+```
+case 1: [5 7] (A[i] = target < A[j])
+case 2: [5 3] (A[i] = target > A[j])
+case 3: [5 5] (A[i] = target = A[j])
+case 4: [3 5] (A[j] = target > A[i])
+case 5: [3 7] (A[i] < target < A[j])
+case 6: [3 4] (A[i] < A[j] < target)
+case 7: [6 7] (target < A[i] < A[j])
+```
+
+for case 1, 2, 3: mid = i; A[mid] = target, so j = mid; so i = j = mid, and A[i] = target
+
+for case 4:  mid = i; A[mid] < target, so i = mid+1; so i = j = mid + 1, and A[i] = target
+
+**For last poisition**
+
+1. If A[mid] > target, then the range must begins on the ***left*** of mid (j = mid-1)
+2. If A[mid] < target, then the range must begins on the ***right*** of mid (hence i = mid+1 for the next iteration)
+3. If A[mid] = target, then the range must begins ***on the right of or at*** mid (i= mid)
+
+so: if A[mid] <= target: i = mid; if A[mid]>target: j = mid - 1
+
+however, for test case`[5 7], target = 5`, mid = i, i = mid, need keep the search range moving,
+
+so use `mid = (i+j+1)/2`
+
+
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        if (nums.length == 0)
+            return new int[]{-1,-1};
+        int[] res = new int[2];
+        int lo = 0, hi = nums.length - 1;
+        while(lo < hi){
+            int m = (lo + hi) / 2;
+            if (nums[m] < target) {
+                lo = m + 1;
+            } else { // nums[m] >= target
+                hi = m;
+            }
+        }
+        if (nums[lo] == target)
+            res[0] = lo;
+        else 
+            res[0] = -1;
+        hi = nums.length - 1;
+        while(lo < hi) {
+            int m = (lo + hi + 1) / 2;
+            if (nums[m] > target) {
+                hi = m - 1;
+            } else { // nums[m] <= target
+                 lo = m;
+            }
+        }
+        if (nums[lo] == target)
+            res[1] = lo;
+        else 
+            res[1] = -1;
+        return res;
     }
 }
 ```
@@ -1190,7 +1200,7 @@ for(int right = 0; right < n; right++){
 // condition2: always meet, keep shrink when meet the requirement, judge and update res
 ```
 
-
+## fixed size
 
 ### 239. Sliding Window Maximum
 
@@ -1233,6 +1243,84 @@ class Solution {
 ```
 
 
+
+### 567. Permutation in String
+
+Creat a map to count each char in s1
+
+using sliding window with length of s1.length() to update count
+
+for each new element, minus char, and remove the head(i-n)
+
+remove the head need to start from index at s1.length();
+
+as this is a fixed length, we don't need the left pointer.
+
+```java
+class Solution {
+    public boolean checkInclusion(String s1, String s2) {
+        int[] count = new int[26];
+        int n = s1.length();
+        for(int i = 0; i < n; i++){
+            count[s1.charAt(i) - 'a']++;
+        }
+        for(int i = 0; i < s2.length(); i++){
+            count[s2.charAt(i) - 'a']--;
+            if(i>=n)
+                count[s2.charAt(i-n) - 'a']++;
+            if(isZero(count))
+                return true;
+        }
+        return false;
+    }
+    private boolean isZero(int[] counts){
+        for(int n: counts){
+            if (n != 0)
+                return false;
+        }
+        return true;
+    }
+}
+```
+
+
+
+### 1052. Grumpy Bookstore Owner
+
+sum up the number of custom that can be satisfy before using tech.
+
+use sliding window to calculate how many new custom will be satifsfy if use tech in current sliding window
+
+for each i, if it was grumpy, add new count; remove the head one at i - X if it was grumpy.
+
+start to delte from index at X
+
+```java
+class Solution {
+    public int maxSatisfied(int[] customers, int[] grumpy, int X) {
+        int base = 0, addition = 0, maxAddition = 0;
+        for(int i = 0; i < grumpy.length; i++){
+            base += (1 - grumpy[i]) * customers[i];
+        }
+        for(int i = 0; i < grumpy.length; i++){
+            if(grumpy[i]==1){
+                addition += customers[i];
+            }
+            if(i >= X && grumpy[i - X]==1){
+                addition -= customers[i - X];
+            }
+            maxAddition = Math.max(maxAddition, addition);
+        }
+        return base + maxAddition;
+    }
+}
+```
+
+
+
+
+
+## Variable size - shrink until meet
 
 ### 1438. Longest Continuous Subarray With Absolute Diff Less Than or Equal to Limit
 
@@ -1339,78 +1427,6 @@ class Solution {
 
 
 
-### 567. Permutation in String
-
-Creat a map to count each char in s1
-
-using sliding window with length of s1.length() to update count
-
-for each new element, minus char, and remove the head(i-n)
-
-remove the head need to start from index at s1.length();
-
-as this is a fixed length, we don't need the left pointer.
-
-```java
-class Solution {
-    public boolean checkInclusion(String s1, String s2) {
-        int[] count = new int[26];
-        int n = s1.length();
-        for(int i = 0; i < n; i++){
-            count[s1.charAt(i) - 'a']++;
-        }
-        for(int i = 0; i < s2.length(); i++){
-            count[s2.charAt(i) - 'a']--;
-            if(i>=n)
-                count[s2.charAt(i-n) - 'a']++;
-            if(isZero(count))
-                return true;
-        }
-        return false;
-    }
-    private boolean isZero(int[] counts){
-        for(int n: counts){
-            if (n != 0)
-                return false;
-        }
-        return true;
-    }
-}
-```
-
-
-
-### 1052. Grumpy Bookstore Owner
-
-sum up the number of custom that can be satisfy before using tech.
-
-use sliding window to calculate how many new custom will be satifsfy if use tech in current sliding window
-
-for each i, if it was grumpy, add new count; remove the head one at i - X if it was grumpy.
-
-start to delte from index at X
-
-```java
-class Solution {
-    public int maxSatisfied(int[] customers, int[] grumpy, int X) {
-        int base = 0, addition = 0, maxAddition = 0;
-        for(int i = 0; i < grumpy.length; i++){
-            base += (1 - grumpy[i]) * customers[i];
-        }
-        for(int i = 0; i < grumpy.length; i++){
-            if(grumpy[i]==1){
-                addition += customers[i];
-            }
-            if(i >= X && grumpy[i - X]==1){
-                addition -= customers[i - X];
-            }
-            maxAddition = Math.max(maxAddition, addition);
-        }
-        return base + maxAddition;
-    }
-}
-```
-
 
 
 ### 424. Longest Repeating Character Replacement
@@ -1500,7 +1516,7 @@ class Solution {
 }
 ```
 
-
+## Variable size - shrink when meet
 
 ### 209. Minimum Size Subarray Sum
 
@@ -1578,6 +1594,8 @@ class Solution {
 
 
 # Stack
+
+## Parentheses
 
 ### 20. Valid Parentheses
 
@@ -1660,7 +1678,7 @@ class Solution {
 }
 ```
 
-
+## Keep pop
 
 ### 739. Daily Temperatures
 
@@ -1763,4 +1781,387 @@ class Solution {
     }
 }
 ```
+
+
+
+# Heap
+
+### 23. Merge k Sorted Lists
+
+```java
+// (a,b)->a.val - b.val: if a < b, return -1, put a first
+PriorityQueue<ListNode> pq = new PriorityQueue<>(lists.length,(a,b)->a.val - b.val);
+```
+
+use the pq to select who is the smallest one, connect the res, then put next, which is the head of remaining list into the pq for further comparision 
+
+```java
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if(lists == null || lists.length == 0) return null;
+        PriorityQueue<ListNode> pq = new PriorityQueue<>(lists.length,(a,b)->a.val - b.val);
+        for(ListNode node: lists){
+            if(node != null)
+                pq.offer(node);
+        }
+        ListNode dummy = new ListNode(0);
+        ListNode curr = dummy;
+        while(!pq.isEmpty()){
+            curr.next = pq.poll();
+            curr = curr.next;
+            if(curr.next != null){
+                pq.offer(curr.next);
+            }
+        }
+        return dummy.next;
+    }
+}
+```
+
+
+
+### 973. K Closest Points to Origin
+
+```java
+pq.toArray(new int[K][2]);
+```
+
+
+
+use max pq to keep k element, when exceed the size, poll out the maximum one
+
+```java
+class Solution {
+    public int[][] kClosest(int[][] points, int K) {
+        PriorityQueue<int[]> pq = new PriorityQueue<>(K, (a,b) -> (-a[0]*a[0] - a[1]*a[1] + b[0]*b[0] + b[1]*b[1]));
+        for(int[] point: points){
+            pq.offer(point);
+            if(pq.size() > K)
+                pq.poll();
+        }
+        return pq.toArray(new int[K][2]);
+    }
+}
+```
+
+
+
+### 692. Top K Frequent Words
+
+```java
+for(Map.Entry<String, Integer> entry: map.entrySet())
+entry.getKey()
+entry.getValue()
+// number from low to high, increase order: a - b
+// char from high to low, decrease order: b.getKey().compareTo(a.getKey())
+PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>((a,b)->
+                 (a.getValue() == b.getValue() ? b.getKey().compareTo(a.getKey())  : 												a.getValue() - b.getValue()));
+```
+
+
+
+```java
+class Solution {
+    public List<String> topKFrequent(String[] words, int k) {
+        HashMap<String, Integer> map = new HashMap<>();
+        for(String w: words){
+            if(!map.containsKey(w))
+                map.put(w, 0);
+            map.put(w, map.get(w) + 1);
+        }
+        PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>(
+            (a,b)->(a.getValue() == b.getValue() ? b.getKey().compareTo(a.getKey())  : a.getValue() - b.getValue())
+        );
+        for(Map.Entry<String, Integer> entry: map.entrySet()){
+            pq.offer(entry);
+            if(pq.size()>k){
+                pq.poll();
+            }
+        }
+        List<String> res = new LinkedList<>();
+        while(!pq.isEmpty()){
+            res.add(0, pq.poll().getKey());
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 295. Find Median from Data Stream
+
+use Large to keep the maximum half of the data
+
+use Small to keep the minmum half of the data
+
+Use minHeap to implement Large, use maxHeap to implement Small
+
+each time, insert new element into Large, then move the smallest one from Large to Small
+
+When small size > large size, move largest one from Small into Large
+
+```java
+class MedianFinder {
+    Queue<Integer> large;
+    Queue<Integer> small;
+
+    /** initialize your data structure here. */
+    public MedianFinder() {
+        large = new PriorityQueue<>();
+        small = new PriorityQueue<>((a,b)->(b-a));
+    }
+    
+    public void addNum(int num) {
+        large.offer(num);
+        small.offer(large.poll());
+        if(small.size() > large.size()){
+            large.offer(small.poll());
+        }
+    }
+    
+    public double findMedian() {
+        if(large.size() > small.size()){
+            return large.peek();
+        } else {
+            return (large.peek() + small.peek()) / 2.0;
+        }
+    }
+}
+```
+
+
+
+### 767. Reorganize String
+
+use map and pq to get the char whose freq is largest
+
+when new char is the same as the last char in sb, poll for second time to get the second largest char
+
+```java
+Map.Entry<Character, Integer> entry: map.entrySet()
+entry.getKey()
+entry.setValue(entry.getValue() - 1)
+```
+
+
+
+```java
+class Solution {
+    public String reorganizeString(String S) {
+        HashMap<Character, Integer> map = new HashMap<>();
+        for(char c: S.toCharArray()){
+            map.put(c, map.getOrDefault(c,0)+1);
+        }
+        Queue<Map.Entry<Character, Integer>> queue = new PriorityQueue<>(
+            (a,b)->(b.getValue() - a.getValue()));
+        for(Map.Entry<Character, Integer> entry: map.entrySet()){
+            queue.offer(entry);
+        }
+        StringBuilder sb = new StringBuilder();
+        while(!queue.isEmpty()){
+            Map.Entry<Character, Integer> entry = queue.poll();
+            if(sb.length() == 0 || entry.getKey() != sb.charAt(sb.length() - 1)){
+                sb.append(entry.getKey());
+                entry.setValue(entry.getValue() - 1);
+                if(entry.getValue() > 0){
+                    queue.offer(entry);
+                }
+            } else {
+                if (queue.isEmpty())
+                     return "";
+                Map.Entry<Character, Integer> second = queue.poll();
+                sb.append(second.getKey());
+                second.setValue(second.getValue() - 1);
+                if(second.getValue() > 0){
+                    queue.offer(second);
+                }
+                queue.offer(entry);
+            }
+        }
+        return sb.toString();
+    }
+}
+```
+
+
+
+### 347. Top K Frequent Elements
+
+nothing special: use map and pq, use minHeap to maintain the largest k elements
+
+```java
+class Solution {
+    public int[] topKFrequent(int[] nums, int k) {
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for(int n: nums){
+            map.put(n, map.getOrDefault(n, 0) + 1);
+        }
+        Queue<Map.Entry<Integer, Integer>> pq = new PriorityQueue<>((a,b)->(a.getValue()-b.getValue()));
+        for(Map.Entry<Integer, Integer> e: map.entrySet()){
+            pq.offer(e);
+            if(pq.size() > k){
+                pq.poll();
+            }
+        }
+        int[] res = new int[pq.size()];
+        int i = 0;
+        while(!pq.isEmpty())
+            res[i++] = pq.poll().getKey();
+        return res;
+    }
+}
+```
+
+# Intervals
+
+### 252. Meeting Rooms
+
+person could attend all meetings.
+
+Sort the start time, from left, if new interval's start before last one's end: false
+
+```java
+class Solution {
+    public boolean canAttendMeetings(int[][] intervals) {
+        Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
+        for(int i = 1; i < intervals.length; i++){
+            if(intervals[i][0] < intervals[i-1][1]){
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+### 253. Meeting Rooms II
+
+sort using the start time by default
+
+use pq to record rooms are taken, the value is the end time
+
+so the pq will give the earlest ending time of current taken rooms
+
+so add the first interval
+
+then for each interval, see if the earlest ending room is ealier than start time of curr interval
+
+if curr[start] >= pq.peek(): if reuse the room, so end the previous room, then added new in
+
+Else: cannot reust, add new room with its end time into the pq
+
+```java
+class Solution {
+    public int minMeetingRooms(int[][] intervals) {
+        if(intervals == null || intervals.length == 0) return 0;
+        Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
+        Queue<Integer> pq = new PriorityQueue<>();
+        pq.offer(intervals[0][1]);
+        for(int i = 1; i < intervals.length; i++){
+            if(intervals[i][0] >= pq.peek()){
+                pq.poll();
+            }
+            pq.offer(intervals[i][1]);
+        }
+        return pq.size();
+    }
+}
+```
+
+
+
+### 56. Merge Intervals
+
+sort using start, add first interval into res
+
+for each new interval, if new[start] > res.peekLast, just add new one
+
+else: change the last interval's end time to the max ending time
+
+```java
+class Solution {
+    public int[][] merge(int[][] intervals) {
+        if(intervals == null || intervals.length == 0)
+            return new int[0][];
+        Arrays.sort(intervals, (a,b)->(a[0]-b[0]));
+        LinkedList<int[]> res = new LinkedList<>();
+        res.add(intervals[0]);
+        for(int i = 1; i < intervals.length; i++){
+            if(intervals[i][0] <= res.peekLast()[1]){
+                res.peekLast()[1] = Math.max(res.peekLast()[1], intervals[i][1]);
+            } else{
+                res.add(intervals[i]);
+            }
+        }
+        return res.toArray(new int[res.size()][2]);
+    }
+}
+```
+
+
+
+### 435. Non-overlapping Intervals
+
+Greedy,
+
+Which interval would be the best **first** (leftmost) interval to keep? One that ends first, as it leaves the most room for the rest.
+
+always pick the interval with the earliest end time. Then you can get the maximal number of non-overlapping intervals. (or minimal number to remove).
+This is because, the interval with the earliest end time produces the maximal capacity to hold rest intervals.
+
+So for each interval, if its start time > available space(end), count++, and update new availabel space
+
+else: we don't want the interval, just continue to skip
+
+```java
+class Solution {
+    public int eraseOverlapIntervals(int[][] intervals) {
+        if(intervals == null||intervals.length == 0) return 0;
+        Arrays.sort(intervals, (a,b)->(a[1]-b[1]));
+        int count = 1;
+        int end = intervals[0][1];
+        for(int[] t: intervals){
+            if(t[0] >= end){
+                count++;
+                end = t[1];
+            }
+        }
+        return intervals.length - count;
+    }
+}
+```
+
+### 729. My Calendar I
+
+use treemap to find the previous interval and next interval, compare start and end
+
+```java
+class MyCalendar {
+    TreeMap<Integer, Integer> calendar;
+    public MyCalendar() {
+        calendar = new TreeMap<>();
+    }
+    
+    public boolean book(int start, int end) {
+        Integer prevStart = calendar.floorKey(start),
+            nextStart = calendar.ceilingKey(start);
+        if((prevStart == null || calendar.get(prevStart) <= start) 
+           && (nextStart == null || nextStart >= end)) {
+            calendar.put(start,end);
+            return true;
+        }
+        else 
+            return false;
+    }
+}
+```
+
+
+
+# todo
+
+quick sort: 215. Kth Largest Element in an Array, 973. K Closest Points to Origin
+
+Interval: 253. Meeting Rooms II, 759. Employee Free Time
 
