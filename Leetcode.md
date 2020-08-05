@@ -1593,7 +1593,7 @@ class Solution {
 
 
 
-# Stack
+# Stack(4)
 
 ## Parentheses
 
@@ -1706,11 +1706,17 @@ class Solution {
 ### 735. Asteroid Collision
 
 ```java
+stack.stream().mapToInt(x -> x).toArray();
+```
+
+
+
+```java
 class Solution {
     public int[] asteroidCollision(int[] asteroids) {
         Stack<Integer> stack = new Stack<>();
         for(int a: asteroids){
-            if(!stack.isEmpty() && a < 0 && stack.peek() > 0){ // - +
+            if(!stack.isEmpty() && a < 0 && stack.peek() > 0){ // + -
                 // 5 -1 do nothing
                 collision:{// 5 -10 or 5 -5
                     while(!stack.isEmpty() && stack.peek() > 0 && -a >= stack.peek()){
@@ -1733,58 +1739,7 @@ class Solution {
 }
 ```
 
-
-
-# Recursion
-
-### 394. Decode String
-
-```java
-Character.isDigit(c)
-s.toCharArray()
-StringBuilder sb = new StringBuilder()
-sb.append(tmp)
-sb.toString()
-```
-
-define the helper to handle case: ab23[xxx]
-
-```java
-class Solution {
-    public String decodeString(String s) {
-        Deque<Character> queue = new ArrayDeque<>();
-        for(char c: s.toCharArray()){
-            queue.offer(c);
-        }
-        return helper(queue);
-    }
-    private String helper(Deque<Character> queue){
-        int num = 0;
-        StringBuilder sb = new StringBuilder();
-        while(!queue.isEmpty()){
-            char c = queue.poll();
-            if(Character.isDigit(c)){
-                num = num * 10 + c - '0';
-            } else if (c == '['){
-                String tmp = helper(queue);
-                for(int i = 0; i < num; i++){
-                    sb.append(tmp);
-                }
-                num = 0;
-            } else if (c == ']'){
-                break;
-            } else {
-                sb.append(c);
-            }
-        } 
-        return sb.toString();
-    }
-}
-```
-
-
-
-# Heap
+# Heap(6)
 
 ### 23. Merge k Sorted Lists
 
@@ -2013,7 +1968,39 @@ class Solution {
 }
 ```
 
-# Intervals
+# Intervals(6)
+
+```java
+|---|
+ |-|
+ |----|
+  		|--|
+  
+```
+
+- Sort intervals/pairs in increasing order of the start position.
+- Scan the sorted intervals, and maintain an "active set" for overlapping intervals. At most times, we do not need to use an explicit set to store them. Instead, we just need to maintain several key parameters, e.g. the number of overlapping intervals (count), the minimum ending point among all overlapping intervals (minEnd).
+- If the interval that we are currently checking overlaps with the active set, which can be characterized by cur.start > minEnd, we need to renew those key parameters or change some states.
+- If the current interval does not overlap with the active set, we just drop current active set, record some parameters, and create a new active set that contains the current interval.
+
+```java
+int count = 0; // Global parameters
+int minEnd = Integer.MIN(MAX)_VALUE; // "active set" for overlapping intervals, e.g. the minimum ending point among all overlapping intervals.
+Arrays.sort(intervals, (a,b)->(a[0] - b[0])); // ascending order of starting point
+for(int[] interval: intervals){
+  if(interval[0] > minEnd){
+    // changing some states, record some information, and start a new active set.
+    count++;
+    minEnd = interval[1];
+  } else{
+    // renew key parameters of the active set
+    minEnd = min(minEnd, interval[1]);
+    minEnd = max(minEnd, interval[1]);
+  }
+}
+```
+
+
 
 ### 252. Meeting Rooms
 
@@ -2025,9 +2012,12 @@ Sort the start time, from left, if new interval's start before last one's end: f
 class Solution {
     public boolean canAttendMeetings(int[][] intervals) {
         Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
-        for(int i = 1; i < intervals.length; i++){
-            if(intervals[i][0] < intervals[i-1][1]){
+        int minEnd = Integer.MIN_VALUE;
+        for(int i = 0; i < intervals.length; i++){
+            if(intervals[i][0] < minEnd){
                 return false;
+            } else {
+                minEnd = intervals[i][1];
             }
         }
         return true;
@@ -2035,7 +2025,7 @@ class Solution {
 }
 ```
 
-### 253. Meeting Rooms II
+### 253. Meeting Rooms II(earliest ending)
 
 sort using the start time by default
 
@@ -2055,14 +2045,15 @@ Else: cannot reust, add new room with its end time into the pq
 class Solution {
     public int minMeetingRooms(int[][] intervals) {
         if(intervals == null || intervals.length == 0) return 0;
-        Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
         Queue<Integer> pq = new PriorityQueue<>();
-        pq.offer(intervals[0][1]);
-        for(int i = 1; i < intervals.length; i++){
-            if(intervals[i][0] >= pq.peek()){
+        Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
+        int minEnd = Integer.MAX_VALUE;
+        for(int[] interval: intervals){
+            if(interval[0] >= minEnd){
                 pq.poll();
             }
-            pq.offer(intervals[i][1]);
+            pq.offer(interval[1]);
+            minEnd = pq.peek();
         }
         return pq.size();
     }
@@ -2084,14 +2075,16 @@ class Solution {
     public int[][] merge(int[][] intervals) {
         if(intervals == null || intervals.length == 0)
             return new int[0][];
-        Arrays.sort(intervals, (a,b)->(a[0]-b[0]));
         LinkedList<int[]> res = new LinkedList<>();
-        res.add(intervals[0]);
-        for(int i = 1; i < intervals.length; i++){
-            if(intervals[i][0] <= res.peekLast()[1]){
-                res.peekLast()[1] = Math.max(res.peekLast()[1], intervals[i][1]);
+        Arrays.sort(intervals, (a,b)->(a[0]-b[0]));
+        int minEnd = Integer.MIN_VALUE;
+        for(int i = 0; i < intervals.length; i++){
+            if(intervals[i][0] <= minEnd){
+                minEnd = Math.max(minEnd, intervals[i][1]);
+                res.peekLast()[1] = minEnd;
             } else{
                 res.add(intervals[i]);
+                minEnd = intervals[i][1];
             }
         }
         return res.toArray(new int[res.size()][2]);
@@ -2101,11 +2094,39 @@ class Solution {
 
 
 
+
+
+### 452. Minimum Number of Arrows to Burst Balloons
+
+sort using start time, if new interval.start < curr.end: update the arrow position
+
+else: new.start > curr.end, need a new arrow to shoot at new.end
+
+```java
+class Solution {
+    public int findMinArrowShots(int[][] points) {
+        if(points == null || points.length == 0) return 0;
+        Arrays.sort(points, (a,b)->(a[0] - b[0]));
+        int count = 1;
+        int minEnd = Integer.MAX_VALUE;
+        for(int i = 0; i < points.length; i++){
+            int[] t = points[i];
+            if (minEnd < t[0]){
+                count++;
+                minEnd = t[1];
+            } else{
+                minEnd = Math.min(minEnd, t[1]);
+            }
+        }
+        return count;
+    
+    }
+}
+```
+
+
+
 ### 435. Non-overlapping Intervals
-
-Greedy,
-
-Which interval would be the best **first** (leftmost) interval to keep? One that ends first, as it leaves the most room for the rest.
 
 always pick the interval with the earliest end time. Then you can get the maximal number of non-overlapping intervals. (or minimal number to remove).
 This is because, the interval with the earliest end time produces the maximal capacity to hold rest intervals.
@@ -2117,20 +2138,56 @@ else: we don't want the interval, just continue to skip
 ```java
 class Solution {
     public int eraseOverlapIntervals(int[][] intervals) {
-        if(intervals == null||intervals.length == 0) return 0;
-        Arrays.sort(intervals, (a,b)->(a[1]-b[1]));
-        int count = 1;
-        int end = intervals[0][1];
-        for(int[] t: intervals){
-            if(t[0] >= end){
+        if(intervals.length == 0) return 0;
+        Arrays.sort(intervals, (a,b) ->(a[0] - b[0]));
+        int count = 0;
+        int minEnd = Integer.MIN_VALUE;
+        for(int i = 0; i < intervals.length; i++){
+            if(minEnd <= intervals[i][0]) {
                 count++;
-                end = t[1];
+                minEnd = intervals[i][1];
+            } else {
+                minEnd = Math.min(minEnd, intervals[i][1]);
             }
         }
         return intervals.length - count;
     }
 }
 ```
+
+
+
+### 763. Partition Labels
+
+```JAVA
+class Solution {
+    public List<Integer> partitionLabels(String S) {
+        List<Integer> res = new LinkedList<Integer>();
+        int[] map = new int[26];
+        for(int i = 0; i < S.length(); i++){
+            map[S.charAt(i) - 'a'] = i;
+        }
+        
+        int minEnd = 0;
+        int start = 0;
+        for(int i = 0; i < S.length(); i++){
+            if(i > minEnd){
+                res.add(i - 1 - start + 1);
+                start = i;
+                minEnd = map[S.charAt(i) - 'a'];
+            } else{
+                minEnd = Math.max(minEnd, map[S.charAt(i) - 'a']);
+            }
+        }
+        res.add(S.length() - start);
+        return res;
+    }
+}
+```
+
+
+
+
 
 ### 729. My Calendar I
 
@@ -2159,9 +2216,314 @@ class MyCalendar {
 
 
 
+# Recursion(8)
+
+### 938. Range Sum of BST
+
+```java
+class Solution {
+    int L, R;
+    public int rangeSumBST(TreeNode root, int L, int R) {
+        this.L = L;
+        this.R = R;
+        return dfs(root);
+    }
+    private int dfs(TreeNode node){
+        if(node == null) return 0;
+        if(L <= node.val && node.val <= R){
+            return node.val + dfs(node.left) + dfs(node.right);
+        }
+        else if (node.val < L)
+            return dfs(node.right);
+        else
+            return dfs(node.left);
+    }
+}
+```
+
+
+
+### 394. Decode String
+
+```java
+Character.isDigit(c)
+s.toCharArray()
+StringBuilder sb = new StringBuilder()
+sb.append(tmp)
+sb.toString()
+```
+
+define the helper to handle case: ab23[xxx]
+
+```java
+class Solution {
+    public String decodeString(String s) {
+        Deque<Character> queue = new ArrayDeque<>();
+        for(char c: s.toCharArray()){
+            queue.offer(c);
+        }
+        return helper(queue);
+    }
+    private String helper(Deque<Character> queue){
+        int num = 0;
+        StringBuilder sb = new StringBuilder();
+        while(!queue.isEmpty()){
+            char c = queue.poll();
+            if(Character.isDigit(c)){
+                num = num * 10 + c - '0';
+            } else if (c == '['){
+                String tmp = helper(queue);
+                for(int i = 0; i < num; i++){
+                    sb.append(tmp);
+                }
+                num = 0;
+            } else if (c == ']'){
+                break;
+            } else {
+                sb.append(c);
+            }
+        } 
+        return sb.toString();
+    }
+}
+```
+
+
+
+### 687. Longest Univalue Path
+
+Let `dfs(node)` be the length of the longest arrow that extends from the `node`. That will be `1 + dfs(node.left)` if `node.left` exists and has the same value as `node`. 
+
+`arrowLeft = left + 1(if node.val = left.val) / 0; arrowRight = right + 1 / 0`
+
+`return max(arrowLeft, arrowRight)`
+
+While we are computing arrow lengths, each candidate answer will be the sum of the arrows in both directions from that node. We record these candidate answers and return the best one.
+
+so update the ans as `ans = max(ans, arrowLeft + arrowRight)`
+
+```java
+class Solution {
+    int ans;
+    public int longestUnivaluePath(TreeNode root) {
+        ans = 0;
+        dfs(root);
+        return ans;
+    }
+    private int dfs(TreeNode node){
+        if(node == null)
+            return 0;
+        int left = dfs(node.left);
+        int right = dfs(node.right);
+        int arrowLeft = 0, arrowRight = 0;
+        if (node.left != null && node.val == node.left.val){
+            arrowLeft = left + 1;
+        }
+        if (node.right != null && node.val == node.right.val){
+            arrowRight = right + 1;
+        }
+        ans = Math.max(ans, arrowLeft + arrowRight);
+        return Math.max(arrowLeft, arrowRight);
+    }
+}
+```
+
+
+
+### 698. Partition to K Equal Sum Subsets
+
+canPartition: if can use unvisited element with currentSum to  partition to K subset, then return true;
+
+for each round: if currSum == target, k--
+
+Else: select the unvisited element & currSum + e <= target
+
+Mark new element, keep search with new CurrSum to check if this step is good
+
+if bad, backtrack this step.
+
+```java
+class Solution {
+    int[] nums;
+    int target;
+    boolean[] visited;
+    public boolean canPartitionKSubsets(int[] nums, int k) {
+        this.nums = nums;
+        visited = new boolean[nums.length];
+        int sum = 0;
+        for(int n: nums)
+            sum += n;
+        if(sum%k != 0) return false;
+        target = sum / k;
+        return canPartition(0,k,0);
+    }
+    private boolean canPartition(int currSum, int k, int start){
+        if(k==1) return true;
+        if(currSum == target){
+            return canPartition(0, k-1,0);
+        }
+        for(int i = start; i < nums.length; i++){
+            if(visited[i]==false && currSum + nums[i] <= target){
+                visited[i] = true;
+                if(canPartition(currSum + nums[i], k, i+1))
+                    return true;
+                visited[i] = false;
+            }
+        }
+        return false;
+    }
+}
+```
+
+
+
+### 247. Strobogrammatic Number II
+
+construct new string based on n-2 case
+
+corner case: when construct the most outter number, cannot use 0
+
+```java
+class Solution {
+    int N;
+    public List<String> findStrobogrammatic(int n) {
+        N = n;
+        return helper(n);
+    }
+    private List<String> helper(int n){
+        List<String> res = new ArrayList<>();
+        if(n == 0) return new ArrayList<String>(Arrays.asList(""));
+        if(n == 1) return new ArrayList<String>(Arrays.asList("0","1","8"));
+        List<String> lists = helper(n - 2);
+        for(String s: lists){
+            if(n != N)
+                res.add("0"+s+"0");
+            res.add("1"+s+"1");
+            res.add("8"+s+"8");
+            res.add("6"+s+"9");
+            res.add("9"+s+"6");
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 22. Generate Parentheses
+
+First, the first character should be “(“. Second, at each step, you can either print “(“ or “)”, but print “)” only when there are more “(“s than “)”s. Stop printing out “(“ when the number of “(“ s hit n. 
+
+![IMG_5CB076502EFD-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_5CB076502EFD-1.jpeg)
+
+```java
+class Solution {
+    List<String> res;
+    int n;
+    public List<String> generateParenthesis(int n) {
+        res = new ArrayList<>();
+        this.n = n;
+        helper("", 0,0);
+        return res;
+    }
+    private void helper(String currString, int open, int end){
+        if(currString.length() == 2 * n){
+            res.add(currString);
+            return;
+        }
+        if(open < n){
+            helper(currString + "(", open+1, end);
+        }
+        if(end < open){
+            helper(currString + ")", open, end+1);
+        }
+            
+    }
+}
+```
+
+### 17. Letter Combinations of a Phone Number
+
+use preString to record, and use digits to update remaining digits
+
+```java
+class Solution {
+    Map<String, String> phone = new HashMap<String, String>() {{
+        put("2", "abc");
+        put("3", "def");
+        put("4", "ghi");
+        put("5", "jkl");
+        put("6", "mno");
+        put("7", "pqrs");
+        put("8", "tuv");
+        put("9", "wxyz");
+      }};
+    List<String> res = new ArrayList<String>();
+    public List<String> letterCombinations(String digits) {
+        if(digits.length() != 0)
+            helper("", digits);
+        return res;
+    }
+    private void helper(String prevString, String digits){
+        if(digits.length() == 0){
+            res.add(prevString);
+        } else {
+            String letters = phone.get(digits.substring(0,1));
+            for(char c: letters.toCharArray()){
+                helper(prevString + c, digits.substring(1));
+            }
+        }
+    }
+}
+```
+
+
+
+### 894. All Possible Full Binary Trees
+
+use memo to record result of each N
+
+if there are N ndoe, x node in left subtree,  then there are N - 1 - x right subtree
+
+permutation for each possible left tree and right tree
+
+```java
+class Solution {
+    HashMap<Integer, List<TreeNode>> memo = new HashMap<>();
+    public List<TreeNode> allPossibleFBT(int N) {
+        if(!memo.containsKey(N)){
+            List<TreeNode> res = new LinkedList<>();
+            if(N == 1)
+                res.add(new TreeNode(0));
+            else if(N%2 == 1){
+                for(int x = 0; x < N; x++){
+                    int y = N - 1 - x;
+                    for(TreeNode left: allPossibleFBT(x)){
+                        for(TreeNode right: allPossibleFBT(y)){
+                            TreeNode root = new TreeNode(0);
+                            root.left = left;
+                            root.right = right;
+                            res.add(root);
+                        }
+                    }
+                }
+            }
+            memo.put(N, res);
+        }
+        return memo.get(N);
+
+    }
+    
+}
+```
+
+
+
+
+
 # todo
 
 quick sort: 215. Kth Largest Element in an Array, 973. K Closest Points to Origin
 
-Interval: 253. Meeting Rooms II, 759. Employee Free Time
+Interval: 759. Employee Free Time
 
