@@ -2253,7 +2253,7 @@ sb.append(tmp)
 sb.toString()
 ```
 
-define the helper to handle case: ab23[xxx]
+define the helper to handle case: ab23[xxx]: a2[c3[d]]
 
 ```java
 class Solution {
@@ -2324,53 +2324,6 @@ class Solution {
         }
         ans = Math.max(ans, arrowLeft + arrowRight);
         return Math.max(arrowLeft, arrowRight);
-    }
-}
-```
-
-
-
-### 698. Partition to K Equal Sum Subsets
-
-canPartition: if can use unvisited element with currentSum to  partition to K subset, then return true;
-
-for each round: if currSum == target, k--
-
-Else: select the unvisited element & currSum + e <= target
-
-Mark new element, keep search with new CurrSum to check if this step is good
-
-if bad, backtrack this step.
-
-```java
-class Solution {
-    int[] nums;
-    int target;
-    boolean[] visited;
-    public boolean canPartitionKSubsets(int[] nums, int k) {
-        this.nums = nums;
-        visited = new boolean[nums.length];
-        int sum = 0;
-        for(int n: nums)
-            sum += n;
-        if(sum%k != 0) return false;
-        target = sum / k;
-        return canPartition(0,k,0);
-    }
-    private boolean canPartition(int currSum, int k, int start){
-        if(k==1) return true;
-        if(currSum == target){
-            return canPartition(0, k-1,0);
-        }
-        for(int i = start; i < nums.length; i++){
-            if(visited[i]==false && currSum + nums[i] <= target){
-                visited[i] = true;
-                if(canPartition(currSum + nums[i], k, i+1))
-                    return true;
-                visited[i] = false;
-            }
-        }
-        return false;
     }
 }
 ```
@@ -2514,6 +2467,402 @@ class Solution {
 
     }
     
+}
+```
+
+
+
+# Backtracking
+
+incrementally builds candidates to the solution and abandons a candidate ("backtracks") as soon as it determines that the candidate cannot lead to a valid solution. 
+
+```python
+def backtrack(candidate):
+    if find_solution(candidate):
+        output(candidate)
+        return
+    
+    # iterate all possible candidates.
+    for next_candidate in list_of_candidates:
+        if is_valid(next_candidate):
+            # try this partial candidate solution
+            place(next_candidate)
+            # given the candidate, explore further.
+            backtrack(next_candidate)
+            # backtrack
+            remove(next_candidate)
+```
+
+
+
+
+
+![Screen Shot 2020-08-05 at 2.42.39 PM](/Users/yixing/Documents/New/WorkSpace/Notebook/images/Screen Shot 2020-08-05 at 2.42.39 PM.png)
+
+## i = 0, use visited
+
+### 46. Permutations`[1,2][2,1]`  `i=0`
+
+```java
+res.add(new ArrayList<>(tempList)); // otherwise will be null
+```
+
+![IMG_CAACEEC5BE8D-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_CAACEEC5BE8D-1.jpeg)
+
+```java
+class Solution {
+    int[] nums;
+    List<List<Integer>> res = new LinkedList<>();
+    HashSet<Integer> visited = new HashSet<>();
+    public List<List<Integer>> permute(int[] nums) {
+        this.nums = nums;
+        helper(new ArrayList<Integer>());
+        return res;
+    }
+    private void helper(List<Integer> tempList){
+        if(tempList.size() == nums.length){
+            res.add(new ArrayList<>(tempList));
+        } else {
+            for(int n: nums){
+                if(!visited.contains(n)){
+                    visited.add(n);
+                    tempList.add(n);
+                    helper(tempList);
+                    tempList.remove(tempList.size() - 1);
+                    visited.remove(n);
+                }
+            }
+        }
+    }
+}
+```
+
+
+
+### 47. Permutations II(dup)
+
+sort and use condition to avoid duplicate
+
+we need to avoid [1a,1b] and [1b, 1a], so we only allow 1a comes before 1b. so when we want to use 1b, we check if we have used 1a, if not, cannot use 1b
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    HashSet<Integer> visited = new HashSet<>();
+    int[] nums;
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        this.nums = nums;
+        Arrays.sort(nums);
+        helper(new ArrayList<>());
+        return res;
+    }
+    private void helper(List<Integer> temp){
+        if(temp.size() == nums.length){
+            res.add(new ArrayList<>(temp));
+            return;
+        }
+        for(int i = 0; i < nums.length; i++){
+            if(visited.contains(i)) continue;
+            if(i>0 && nums[i] == nums[i-1] && !visited.contains(i-1)) continue;
+                visited.add(i);
+                temp.add(nums[i]);
+                helper(temp);
+                temp.remove(temp.size()-1);
+                visited.remove(i);
+        }
+    }
+}
+```
+
+## i = start
+
+### 78. Subsets`[1][2][1,2]` 
+
+for each loop, add the char that comes after.
+
+![IMG_0608](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_0608.PNG)
+
+```java
+class Solution {
+    int[] nums;
+    List<List<Integer>> res = new ArrayList<>();
+    public List<List<Integer>> subsets(int[] nums) {
+        this.nums = nums;
+        helper(new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(List<Integer> temp, int start){
+        res.add(new ArrayList<>(temp));
+        for(int i = start; i < nums.length; i++){
+            temp.add(nums[i]);
+            helper(temp, i+1);
+            temp.remove(temp.size() - 1);
+        }
+    }
+}
+```
+
+### 90. Subsets II(dup)
+
+Use sort to avoid duplicate, `if(i> start && nums[i] == nums[i-1]) continue;`
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    int[] nums;
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        this.nums = nums;
+        Arrays.sort(nums);
+        helper(new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(List<Integer> temp, int start){
+        res.add(new ArrayList<>(temp));
+        for(int i = start; i < nums.length; i++){
+            if(i> start && nums[i] == nums[i-1]) continue;
+            temp.add(nums[i]);
+            helper(temp, i+ 1);
+            temp.remove(temp.size()-1);
+        }
+    }
+}
+```
+
+
+
+### 77. Combinations`[1,2][2,3]` 
+
+[1,4] and [4,1]: permutation: for(i =0, i<; i++) and visited
+
+only [1,4]: combination: for(int i = start)
+
+```java
+class Solution {
+    int n, k;
+    List<List<Integer>> res = new ArrayList<>();
+    public List<List<Integer>> combine(int n, int k) {
+        this.n = n;
+        this.k = k;
+        helper(new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(List<Integer> temp, int start){
+        if(temp.size() == k){
+            res.add(new ArrayList<>(temp));
+            return;
+        }
+        for(int i = start; i < n; i++){
+            if(visited[i]==false){
+                temp.add(i + 1);
+                helper(temp, i + 1);
+                temp.remove(temp.size()-1);
+            }
+        }
+    }
+}
+```
+
+
+
+### 39. Combination Sum
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    int[] nums;
+    int target;
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        nums = candidates;
+        this.target = target;
+        helper(0, new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(int currSum, List<Integer> temp, int start){
+        if(currSum == target){
+            res.add(new ArrayList<>(temp));
+            return;
+        }
+        for(int i = start; i < nums.length; i++){
+            int n = nums[i];
+            if(n + currSum <= target){
+                temp.add(n);
+                helper(currSum+n, temp,i);
+                temp.remove(temp.size()-1);
+            }
+        }
+    }
+}
+```
+
+
+
+### 40. Combination Sum II(dup)
+
+`if(i>start && nums[i] == nums[i-1]) continue;`
+
+`i > cur`: before explaining this, first recall what `cur` is? `cur` points to the index which we start with in the first place before entering the for loop. It is the starting value from which we started picking up numbers. Since it's the starting point, so we will definitely take this number. `i` indicates the index which we are currently processing. Mind that in one recursive call stack the value of `cur` is not going to change but the value of `i` will keep on changing. If this is clear, then `i > cur` is simple to understand, it means that we are currently considering a position which is greater then `cur`.
+
+Now, consider the second condition `cand[i] == and[i - 1]`, we are considering an index which is greater then `cur` because that must be true if we are checking this condition, meaning we have already taken the number which is at `cur`, so if the number after `cur` has the same value, then we won't consider it again because that will be duplication. And that explains the condition.
+
+![IMG_8B0549BB10B0-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_8B0549BB10B0-1.jpeg)
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    int[] nums;
+    int target;
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        nums = candidates;
+        this.target = target;
+        Arrays.sort(nums);
+        helper(0, new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(int currSum, List<Integer> temp, int start){
+        if(currSum == target){
+            res.add(new ArrayList<>(temp));
+            return;
+        }
+        for(int i = start; i < nums.length; i++){
+            if(i>start && nums[i] == nums[i-1]) continue;
+            if(nums[i] + currSum <= target){
+                temp.add(nums[i]);
+                helper(currSum + nums[i], temp, i+1);
+                temp.remove(temp.size() - 1);
+            }
+        }
+    }
+}
+```
+
+
+
+### 131. Palindrome Partitioning
+
+`if(isPalindrome(s, start, i))`, then add `s.substring(start, i+1)`
+
+```java
+class Solution {
+    List<List<String>> res = new ArrayList<>();
+    String s;
+    public List<List<String>> partition(String s) {
+        this.s = s;
+        helper(new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(List<String> temp, int start){
+        if(start == s.length()){
+            res.add(new ArrayList<>(temp));
+            return;
+        }
+        for(int i = start; i < s.length(); i++){
+            if(isPalindrome(s, start, i)){
+                temp.add(s.substring(start, i+1));
+                helper(temp, i+1);
+                temp.remove(temp.size()-1);
+            }
+        }
+    }
+    private boolean isPalindrome(String s, int l, int r){
+        while(l < r){
+            if (s.charAt(l) != s.charAt(r)){
+                return false;
+            }
+            l++;r--;
+        }
+        return true;
+    }
+}
+```
+
+## Search
+
+### 79. Word Search
+
+helper(int r, int c, int index): return true, if we can match `word.substring(index)` from `board[r][c]`
+
+
+
+```java
+class Solution {
+    char[][] board;
+    int Rows, Cols;
+    String word;
+    public boolean exist(char[][] board, String word) {
+        this.board = board;
+        this.word = word;
+        Rows = board.length;
+        Cols = board[0].length;
+        for(int r = 0; r < Rows; r++)
+            for(int c = 0; c < Cols; c++)
+                if(helper(r,c,0))
+                    return true;
+        return false;
+    }
+    private boolean helper(int r, int c, int index){
+        if(index >= word.length())
+            return true;
+        if(r<0 || r==Rows || c<0 || c==Cols || board[r][c]!=word.charAt(index))
+            return false;
+      
+        board[r][c] = '#';
+        int[] rowOffsets = new int[]{0,1,0,-1};
+        int[] colOffsets = new int[]{1,0,-1,0};
+        for(int i = 0; i < 4; i++)
+            if(helper(r+rowOffsets[i],c+colOffsets[i], index + 1))
+                return true;
+        board[r][c] = word.charAt(index);
+        return false;
+    }
+}
+```
+
+
+
+### 698. Partition to K Equal Sum Subsets
+
+canPartition: if can use unvisited element with currentSum to  partition to K subset, then return true;
+
+for each round: if currSum == target, k--
+
+Else: select the unvisited element & currSum + e <= target
+
+Mark new element, keep search with new CurrSum to check if this step is good
+
+if bad, backtrack this step.
+
+Use start to avoid duplication calculation 
+
+```java
+class Solution {
+    int[] nums;
+    int target;
+    boolean[] visited;
+    public boolean canPartitionKSubsets(int[] nums, int k) {
+        this.nums = nums;
+        visited = new boolean[nums.length];
+        int sum = 0;
+        for(int n: nums)
+            sum += n;
+        if(sum%k != 0) return false;
+        target = sum / k;
+        return canPartition(0,k,0);
+    }
+    private boolean canPartition(int currSum, int k, int start){
+        if(k==1) return true;
+        if(currSum == target){
+            return canPartition(0, k-1,0);
+        }
+        for(int i = start; i < nums.length; i++){
+            if(visited[i]==false && currSum + nums[i] <= target){
+                visited[i] = true;
+                if(canPartition(currSum + nums[i], k, i+1))
+                    return true;
+                visited[i] = false;
+            }
+        }
+        return false;
+    }
 }
 ```
 
