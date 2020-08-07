@@ -2216,7 +2216,9 @@ class MyCalendar {
 
 
 
-# Recursion(8)
+# Recursion(6)
+
+## Tree
 
 ### 938. Range Sum of BST
 
@@ -2237,53 +2239,6 @@ class Solution {
             return dfs(node.right);
         else
             return dfs(node.left);
-    }
-}
-```
-
-
-
-### 394. Decode String
-
-```java
-Character.isDigit(c)
-s.toCharArray()
-StringBuilder sb = new StringBuilder()
-sb.append(tmp)
-sb.toString()
-```
-
-define the helper to handle case: ab23[xxx]: a2[c3[d]]
-
-```java
-class Solution {
-    public String decodeString(String s) {
-        Deque<Character> queue = new ArrayDeque<>();
-        for(char c: s.toCharArray()){
-            queue.offer(c);
-        }
-        return helper(queue);
-    }
-    private String helper(Deque<Character> queue){
-        int num = 0;
-        StringBuilder sb = new StringBuilder();
-        while(!queue.isEmpty()){
-            char c = queue.poll();
-            if(Character.isDigit(c)){
-                num = num * 10 + c - '0';
-            } else if (c == '['){
-                String tmp = helper(queue);
-                for(int i = 0; i < num; i++){
-                    sb.append(tmp);
-                }
-                num = 0;
-            } else if (c == ']'){
-                break;
-            } else {
-                sb.append(c);
-            }
-        } 
-        return sb.toString();
     }
 }
 ```
@@ -2328,7 +2283,45 @@ class Solution {
 }
 ```
 
+### 894. All Possible Full Binary Trees
 
+use memo to record result of each N
+
+if there are N ndoe, x node in left subtree,  then there are N - 1 - x right subtree
+
+permutation for each possible left tree and right tree
+
+```java
+class Solution {
+    HashMap<Integer, List<TreeNode>> memo = new HashMap<>();
+    public List<TreeNode> allPossibleFBT(int N) {
+        if(!memo.containsKey(N)){
+            List<TreeNode> res = new LinkedList<>();
+            if(N == 1)
+                res.add(new TreeNode(0));
+            else if(N%2 == 1){
+                for(int x = 0; x < N; x++){
+                    int y = N - 1 - x;
+                    for(TreeNode left: allPossibleFBT(x)){
+                        for(TreeNode right: allPossibleFBT(y)){
+                            TreeNode root = new TreeNode(0);
+                            root.left = left;
+                            root.right = right;
+                            res.add(root);
+                        }
+                    }
+                }
+            }
+            memo.put(N, res);
+        }
+        return memo.get(N);
+    }
+}
+```
+
+
+
+## Generate
 
 ### 247. Strobogrammatic Number II
 
@@ -2395,84 +2388,56 @@ class Solution {
 }
 ```
 
-### 17. Letter Combinations of a Phone Number
 
-use preString to record, and use digits to update remaining digits
+
+### 394. Decode String
 
 ```java
-class Solution {
-    Map<String, String> phone = new HashMap<String, String>() {{
-        put("2", "abc");
-        put("3", "def");
-        put("4", "ghi");
-        put("5", "jkl");
-        put("6", "mno");
-        put("7", "pqrs");
-        put("8", "tuv");
-        put("9", "wxyz");
-      }};
-    List<String> res = new ArrayList<String>();
-    public List<String> letterCombinations(String digits) {
-        if(digits.length() != 0)
-            helper("", digits);
-        return res;
-    }
-    private void helper(String prevString, String digits){
-        if(digits.length() == 0){
-            res.add(prevString);
-        } else {
-            String letters = phone.get(digits.substring(0,1));
-            for(char c: letters.toCharArray()){
-                helper(prevString + c, digits.substring(1));
-            }
-        }
-    }
-}
+Character.isDigit(c)
+s.toCharArray()
+StringBuilder sb = new StringBuilder()
+sb.append(tmp)
+sb.toString()
 ```
 
-
-
-### 894. All Possible Full Binary Trees
-
-use memo to record result of each N
-
-if there are N ndoe, x node in left subtree,  then there are N - 1 - x right subtree
-
-permutation for each possible left tree and right tree
+define the helper to handle case: ab23[xxx]: a2[c3[d]]
 
 ```java
 class Solution {
-    HashMap<Integer, List<TreeNode>> memo = new HashMap<>();
-    public List<TreeNode> allPossibleFBT(int N) {
-        if(!memo.containsKey(N)){
-            List<TreeNode> res = new LinkedList<>();
-            if(N == 1)
-                res.add(new TreeNode(0));
-            else if(N%2 == 1){
-                for(int x = 0; x < N; x++){
-                    int y = N - 1 - x;
-                    for(TreeNode left: allPossibleFBT(x)){
-                        for(TreeNode right: allPossibleFBT(y)){
-                            TreeNode root = new TreeNode(0);
-                            root.left = left;
-                            root.right = right;
-                            res.add(root);
-                        }
-                    }
+    public String decodeString(String s) {
+        Deque<Character> queue = new ArrayDeque<>();
+        for(char c: s.toCharArray()){
+            queue.offer(c);
+        }
+        return helper(queue);
+    }
+    private String helper(Deque<Character> queue){
+        int num = 0;
+        StringBuilder sb = new StringBuilder();
+        while(!queue.isEmpty()){
+            char c = queue.poll();
+            if(Character.isDigit(c)){
+                num = num * 10 + c - '0';
+            } else if (c == '['){
+                String tmp = helper(queue);
+                for(int i = 0; i < num; i++){
+                    sb.append(tmp);
                 }
+                num = 0;
+            } else if (c == ']'){
+                break;
+            } else {
+                sb.append(c);
             }
-            memo.put(N, res);
-        }
-        return memo.get(N);
-
+        } 
+        return sb.toString();
     }
-    
 }
 ```
 
+## 
 
-
-# Backtracking
+# Backtracking(11)
 
 incrementally builds candidates to the solution and abandons a candidate ("backtracks") as soon as it determines that the candidate cannot lead to a valid solution. 
 
@@ -2492,8 +2457,6 @@ def backtrack(candidate):
             # backtrack
             remove(next_candidate)
 ```
-
-
 
 
 
@@ -2652,11 +2615,9 @@ class Solution {
             return;
         }
         for(int i = start; i < n; i++){
-            if(visited[i]==false){
                 temp.add(i + 1);
                 helper(temp, i + 1);
                 temp.remove(temp.size()-1);
-            }
         }
     }
 }
@@ -2735,6 +2696,45 @@ class Solution {
 }
 ```
 
+### 17. Letter Combinations of a Phone Number
+
+use preString to record, and use digits to update remaining digits
+
+```java
+class Solution {
+    Map<Character, String> phone = new HashMap<>() {{
+        put('2', "abc");
+        put('3', "def");
+        put('4', "ghi");
+        put('5', "jkl");
+        put('6', "mno");
+        put('7', "pqrs");
+        put('8', "tuv");
+        put('9', "wxyz");
+      }};
+    List<String> res = new ArrayList<String>();
+    String digits;
+    public List<String> letterCombinations(String digits) {
+        this.digits = digits;
+        if(digits.length() != 0)
+            helper("", 0);
+        return res;
+    }
+    private void helper(String currString, int index){
+        if(digits.length() == index){
+            res.add(currString);
+        } else {
+            String letters = phone.get(digits.charAt(index));
+            for(char c: letters.toCharArray()){
+                currString += c;
+                helper(currString, index + 1);
+                currString = currString.substring(0,currString.length()-1);
+            }
+        }
+    }
+}
+```
+
 
 
 ### 131. Palindrome Partitioning
@@ -2775,7 +2775,7 @@ class Solution {
 }
 ```
 
-## Search
+## Search Boolean
 
 ### 79. Word Search
 
@@ -2812,6 +2812,7 @@ class Solution {
             if(helper(r+rowOffsets[i],c+colOffsets[i], index + 1))
                 return true;
         board[r][c] = word.charAt(index);
+      
         return false;
     }
 }
@@ -2867,6 +2868,324 @@ class Solution {
 ```
 
 
+
+### 51. N-Queens
+
+hills diagonal: row - col + n - 1 = const
+
+dales diagonal: row + col = const
+
+```java
+class Solution {
+    int n;
+    int[] queens;
+    List<List<String>> res = new ArrayList<>();
+    boolean[] dalesTaken;// row + col: [0, 2n-2]: len=2n-1
+    boolean[] hillsTaken;// row - col + n - 1: [0, 2n-2]: len=2n-1
+    boolean[] colsTaken;
+    public List<List<String>> solveNQueens(int n) {
+        this.n = n;
+        queens = new int[n];
+        dalesTaken = new boolean[2*n];
+        hillsTaken = new boolean[2*n];
+        colsTaken = new boolean[n];
+        helper(new ArrayList<>(), 0);
+        return res;
+    }
+    private void helper(List<String> temp, int row){
+        if(row == n)
+            res.add(new ArrayList<>(temp));
+        for(int col = 0; col < n; col++){
+            if(isValid(row, col)){
+                temp.add(construct(col));
+                placeQueen(row,col);
+                helper(temp, row + 1);
+                removeQueen(row,col);
+                temp.remove(temp.size()-1);
+            }
+        }
+    }
+    private void placeQueen(int r, int c){
+        queens[r] = c;
+        colsTaken[c] = true;
+        dalesTaken[r+c] = true;
+        hillsTaken[r-c+n-1] = true;
+    }
+    private void removeQueen(int r, int c){
+        queens[r] = 0;
+        colsTaken[c] = false;
+        dalesTaken[r+c] = false;
+        hillsTaken[r-c+n-1] = false;
+    }
+    private boolean isValid(int r, int c){
+        if(dalesTaken[r+c] || hillsTaken[r-c+n-1] || colsTaken[c])
+            return false;
+        return true;
+    }
+    private String construct(int c){
+        // construct s
+        String s = "";
+        for(int i = 0; i < c; i++)
+            s+=".";
+        s+="Q";
+        for(int i = c+1; i < n; i++)
+            s+=".";
+        return s;
+    }
+}
+```
+
+
+
+# DFS
+
+### 200. Number of Islands
+
+```JAVA
+class Solution {
+    char[][] grid;
+    public int numIslands(char[][] grid) {
+        this.grid = grid;
+        int count = 0;
+        for(int r = 0; r < grid.length; r++)
+            for(int c = 0; c < grid[0].length; c++)
+                if(grid[r][c] == '1'){
+                    count++;
+                    dfs(r,c);
+                }
+        return count;
+    }
+    private void dfs(int r, int c){
+        if(r<0 || r==grid.length||c<0||c==grid[0].length||grid[r][c]=='0')
+            return;
+        
+        grid[r][c] = '0';
+        int[] rowOffsets = new int[]{0,0,1,-1};
+        int[] colOffsets = new int[]{1,-1,0,0};
+        for(int i = 0; i < 4; i++){
+            dfs(r + rowOffsets[i], c + colOffsets[i]);
+        }
+    }
+}
+```
+
+```java
+class Solution {
+    char[][] grid;
+    boolean[][] visited;
+    public int numIslands(char[][] grid) {
+        if(grid.length == 0) return 0;
+        visited = new boolean[grid.length][grid[0].length];
+        this.grid = grid;
+        int count = 0;
+        for(int r = 0; r < grid.length; r++)
+            for(int c = 0; c < grid[0].length; c++)
+                if(!visited[r][c]&&grid[r][c]=='1'){
+                    count++;
+                    dfs(r,c);
+                }
+        return count;
+    }
+    private void dfs(int r, int c){
+        if(r<0 || r==grid.length||c<0||c==grid[0].length||grid[r][c]=='0'||visited[r][c])
+            return;
+        visited[r][c]=true;
+        int[] rowOffsets = new int[]{0,0,1,-1};
+        int[] colOffsets = new int[]{1,-1,0,0};
+        for(int i = 0; i < 4; i++){
+            dfs(r + rowOffsets[i], c + colOffsets[i]);
+        }
+    }
+}
+```
+
+### 695. Max Area of Island
+
+```java
+class Solution {
+    int[][] grid;
+    int rows;
+    int cols;
+    boolean[][] visited;
+    int count = 0;
+
+    public int maxAreaOfIsland(int[][] grid) {
+        this.grid = grid;
+        rows = grid.length;
+        cols = grid[0].length;
+        visited = new boolean[rows][cols];
+        int res = 0;
+        for(int r = 0; r < rows; r++){
+            for(int c = 0; c < cols; c++){
+                if(grid[r][c] == 1 && !visited[r][c]){
+                    helper(r,c);
+                    res = Math.max(res, count);
+                    count = 0;
+                }
+            }
+        }
+        return res;
+    }
+    private void helper(int r, int c){
+        if(r<0||r==rows||c<0||c==cols||grid[r][c]==0||visited[r][c]){
+            return;
+        }
+        visited[r][c] = true;
+        count+=1;
+        int[] rOffsets = new int[]{0,0,1,-1};
+        int[] cOffsets = new int[]{1,-1,0,0};
+        for(int i = 0; i < 4; i++){
+            helper(r + rOffsets[i], c + cOffsets[i]);
+        }
+    }
+}
+```
+
+### 547. Friend Circles
+
+number of connected components in an undirected graph
+
+start from every node which isn't visited right now and apply DFS starting with it. We increment the count of connected components for every new starting node.
+
+```java
+class Solution {
+    boolean[] visited;
+    int[][] M;
+    public int findCircleNum(int[][] M) {
+        this.M = M;
+        int n = M.length;
+        visited = new boolean[n];
+        int count = 0;
+        for(int i = 0; i < n; i++){
+            if(!visited[i]){
+                helper(i);
+                count++;
+            }
+        }
+        return count;
+    }
+  // mark i and his frind as visited
+    private void helper(int i){
+        visited[i] = true;
+        for(int j = 0; j < visited.length; j++){
+            if(M[i][j] == 1&&!visited[j]){
+                helper(j);
+            }
+        }
+    }
+}
+```
+
+
+
+### 105. Construct Binary Tree from Preorder and Inorder Traversal
+
+The first element in the *preorder* list is a root. This root splits *inorder* list into left and right subtrees.
+
+Trick part is to update start and end of preorder and inorder
+
+we use instart and inend to exist, use prestart to get the value of root, so we don't need preend
+
+![IMG_1D73F62B8D43-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_1D73F62B8D43-1.jpeg)
+
+```JAVA
+class Solution {
+    HashMap<Integer, Integer> val2Index = new HashMap<>();
+    int[] preorder;
+    int[] inorder;
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        this.preorder = preorder;
+        this.inorder = inorder;
+        for(int i = 0; i < inorder.length; i++){
+            val2Index.put(inorder[i], i);
+        }
+        return helper(0,0,inorder.length-1);
+    }
+    private TreeNode helper(int preStart, int inStart, int inEnd){
+        if(inStart > inEnd)
+            return null;
+        int val = preorder[preStart];
+        TreeNode root = new TreeNode(val);
+        int index = val2Index.get(val);
+        root.left = helper(preStart+1,inStart,index-1);
+        root.right = helper(preStart+index-inStart + 1,index+1,inEnd);
+        return root;
+    }
+}
+```
+
+### 98. Validate Binary Search Tree
+
+not just check root.val with left.val and right.val
+
+use an interval [low,high] to make sure root inside this interval
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return helper(root, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+    private boolean helper(TreeNode root, int low, int high){
+        if(root == null) return true;
+        if(root.val <= low || root.val >= high)
+            return false;
+        if(!helper(root.left, low, root.val))
+            return false;
+        if(!helper(root.right, root.val, high))
+            return false;
+        return true;
+    }
+}
+```
+
+
+
+To avoid Integer.MAX
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return helper(root, null, null);
+    }
+    private boolean helper(TreeNode root, Integer low, Integer high){
+        if(root == null) return true;
+        if((low!=null && root.val <= low) || (high!=null&&root.val >= high))
+            return false;
+        if(!helper(root.left, low, root.val))
+            return false;
+        if(!helper(root.right, root.val, high))
+            return false;
+        return true;
+    }
+}
+```
+
+
+
+###  366. Find Leaves of Binary Tree
+
+The key is to find the height of each node. Here the definition of height is:
+The height of a node is the number of edges from the node to the deepest leaf. 
+
+The height of a node is also the its index in the result list (res)
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    public List<List<Integer>> findLeaves(TreeNode root) {
+        height(root);
+        return res;
+    }
+    private int height(TreeNode root){
+        if(root == null)
+            return -1;
+        int h = 1 + Math.max(height(root.left), height(root.right));
+        if(h >= res.size()) res.add(new ArrayList<>());
+        res.get(h).add(root.val);
+        return h;
+    }
+}
+```
 
 
 
