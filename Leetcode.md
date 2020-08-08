@@ -1968,7 +1968,7 @@ class Solution {
 }
 ```
 
-# Intervals(6)
+# Intervals(7)
 
 ```java
 |---|
@@ -1985,10 +1985,10 @@ class Solution {
 
 ```java
 int count = 0; // Global parameters
-int minEnd = Integer.MIN(MAX)_VALUE; // "active set" for overlapping intervals, e.g. the minimum ending point among all overlapping intervals.
+int minEnd = Integer.MIN_VALUE; // "active set" for overlapping intervals, e.g. the minimum ending point among all overlapping intervals.
 Arrays.sort(intervals, (a,b)->(a[0] - b[0])); // ascending order of starting point
 for(int[] interval: intervals){
-  if(interval[0] > minEnd){
+  if(minEnd < interval[0]){
     // changing some states, record some information, and start a new active set.
     count++;
     minEnd = interval[1];
@@ -2014,10 +2014,10 @@ class Solution {
         Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
         int minEnd = Integer.MIN_VALUE;
         for(int i = 0; i < intervals.length; i++){
-            if(intervals[i][0] < minEnd){
-                return false;
-            } else {
+            if(minEnd <= intervals[i][0]){
                 minEnd = intervals[i][1];
+            } else {
+                return false;
             }
         }
         return true;
@@ -2047,13 +2047,17 @@ class Solution {
         if(intervals == null || intervals.length == 0) return 0;
         Queue<Integer> pq = new PriorityQueue<>();
         Arrays.sort(intervals, (a,b)->(a[0] - b[0]));
-        int minEnd = Integer.MAX_VALUE;
+        int minEnd = Integer.MIN_VALUE;
         for(int[] interval: intervals){
-            if(interval[0] >= minEnd){
-                pq.poll();
+            if(minEnd <= interval[0]){
+                if(!pq.isEmpty())
+                    pq.poll();
+                pq.offer(interval[1]);
+                minEnd = pq.peek();
+            } else {
+                pq.offer(interval[1]);
+                minEnd = pq.peek();
             }
-            pq.offer(interval[1]);
-            minEnd = pq.peek();
         }
         return pq.size();
     }
@@ -2079,12 +2083,12 @@ class Solution {
         Arrays.sort(intervals, (a,b)->(a[0]-b[0]));
         int minEnd = Integer.MIN_VALUE;
         for(int i = 0; i < intervals.length; i++){
-            if(intervals[i][0] <= minEnd){
-                minEnd = Math.max(minEnd, intervals[i][1]);
-                res.peekLast()[1] = minEnd;
-            } else{
+            if(minEnd < intervals[i][0]){
                 res.add(intervals[i]);
                 minEnd = intervals[i][1];
+            } else {
+                minEnd = Math.max(minEnd, intervals[i][1]);
+                res.peekLast()[1] = minEnd;
             }
         }
         return res.toArray(new int[res.size()][2]);
@@ -2107,8 +2111,8 @@ class Solution {
     public int findMinArrowShots(int[][] points) {
         if(points == null || points.length == 0) return 0;
         Arrays.sort(points, (a,b)->(a[0] - b[0]));
-        int count = 1;
-        int minEnd = Integer.MAX_VALUE;
+        int count = 0;
+        int minEnd = Integer.MIN_VALUE;
         for(int i = 0; i < points.length; i++){
             int[] t = points[i];
             if (minEnd < t[0]){
@@ -2171,7 +2175,7 @@ class Solution {
         int minEnd = 0;
         int start = 0;
         for(int i = 0; i < S.length(); i++){
-            if(i > minEnd){
+            if(minEnd < i){
                 res.add(i - 1 - start + 1);
                 start = i;
                 minEnd = map[S.charAt(i) - 'a'];
@@ -2216,72 +2220,9 @@ class MyCalendar {
 
 
 
-# Recursion(6)
+# Recursion(4)
 
 ## Tree
-
-### 938. Range Sum of BST
-
-```java
-class Solution {
-    int L, R;
-    public int rangeSumBST(TreeNode root, int L, int R) {
-        this.L = L;
-        this.R = R;
-        return dfs(root);
-    }
-    private int dfs(TreeNode node){
-        if(node == null) return 0;
-        if(L <= node.val && node.val <= R){
-            return node.val + dfs(node.left) + dfs(node.right);
-        }
-        else if (node.val < L)
-            return dfs(node.right);
-        else
-            return dfs(node.left);
-    }
-}
-```
-
-
-
-### 687. Longest Univalue Path
-
-Let `dfs(node)` be the length of the longest arrow that extends from the `node`. That will be `1 + dfs(node.left)` if `node.left` exists and has the same value as `node`. 
-
-`arrowLeft = left + 1(if node.val = left.val) / 0; arrowRight = right + 1 / 0`
-
-`return max(arrowLeft, arrowRight)`
-
-While we are computing arrow lengths, each candidate answer will be the sum of the arrows in both directions from that node. We record these candidate answers and return the best one.
-
-so update the ans as `ans = max(ans, arrowLeft + arrowRight)`
-
-```java
-class Solution {
-    int ans;
-    public int longestUnivaluePath(TreeNode root) {
-        ans = 0;
-        dfs(root);
-        return ans;
-    }
-    private int dfs(TreeNode node){
-        if(node == null)
-            return 0;
-        int left = dfs(node.left);
-        int right = dfs(node.right);
-        int arrowLeft = 0, arrowRight = 0;
-        if (node.left != null && node.val == node.left.val){
-            arrowLeft = left + 1;
-        }
-        if (node.right != null && node.val == node.right.val){
-            arrowRight = right + 1;
-        }
-        ans = Math.max(ans, arrowLeft + arrowRight);
-        return Math.max(arrowLeft, arrowRight);
-    }
-}
-```
 
 ### 894. All Possible Full Binary Trees
 
@@ -2356,40 +2297,6 @@ class Solution {
 
 
 
-### 22. Generate Parentheses
-
-First, the first character should be “(“. Second, at each step, you can either print “(“ or “)”, but print “)” only when there are more “(“s than “)”s. Stop printing out “(“ when the number of “(“ s hit n. 
-
-![IMG_5CB076502EFD-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_5CB076502EFD-1.jpeg)
-
-```java
-class Solution {
-    List<String> res;
-    int n;
-    public List<String> generateParenthesis(int n) {
-        res = new ArrayList<>();
-        this.n = n;
-        helper("", 0,0);
-        return res;
-    }
-    private void helper(String currString, int open, int end){
-        if(currString.length() == 2 * n){
-            res.add(currString);
-            return;
-        }
-        if(open < n){
-            helper(currString + "(", open+1, end);
-        }
-        if(end < open){
-            helper(currString + ")", open, end+1);
-        }
-            
-    }
-}
-```
-
-
-
 ### 394. Decode String
 
 ```java
@@ -2437,7 +2344,7 @@ class Solution {
 
 ## 
 
-# Backtracking(11)
+# Backtracking(13)
 
 incrementally builds candidates to the solution and abandons a candidate ("backtracks") as soon as it determines that the candidate cannot lead to a valid solution. 
 
@@ -2937,7 +2844,69 @@ class Solution {
 
 
 
-# DFS
+### 22. Generate Parentheses
+
+First, the first character should be “(“. Second, at each step, you can either print “(“ or “)”, but print “)” only when there are more “(“s than “)”s. Stop printing out “(“ when the number of “(“ s hit n. 
+
+![IMG_5CB076502EFD-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_5CB076502EFD-1.jpeg)
+
+```java
+class Solution {
+    List<String> res;
+    int n;
+    public List<String> generateParenthesis(int n) {
+        res = new ArrayList<>();
+        this.n = n;
+        helper("", 0,0);
+        return res;
+    }
+    private void helper(String currString, int open, int end){
+        if(currString.length() == 2 * n){
+            res.add(currString);
+            return;
+        }
+        if(open < n){
+            // helper(currString + "(", open+1, end);
+          	currString += "(";
+            helper(currString, open+1, end);
+            currString = currString.substring(0,currString.length()-1);
+        }
+        if(end < open){
+            helper(currString + ")", open, end+1);
+        }
+            
+    }
+}
+```
+
+
+
+# DFS(11)
+
+### 938. Range Sum of BST
+
+```java
+class Solution {
+    int L, R;
+    public int rangeSumBST(TreeNode root, int L, int R) {
+        this.L = L;
+        this.R = R;
+        return dfs(root);
+    }
+    private int dfs(TreeNode node){
+        if(node == null) return 0;
+        if(L <= node.val && node.val <= R){
+            return node.val + dfs(node.left) + dfs(node.right);
+        }
+        else if (node.val < L)
+            return dfs(node.right);
+        else
+            return dfs(node.left);
+    }
+}
+```
+
+
 
 ### 200. Number of Islands
 
@@ -3183,6 +3152,189 @@ class Solution {
         if(h >= res.size()) res.add(new ArrayList<>());
         res.get(h).add(root.val);
         return h;
+    }
+}
+```
+
+
+
+### 417. Pacific Atlantic Water Flow
+
+Start from ocean instead of each point in matrix, reduce time from n^2 to n
+
+```java
+int[][] Offsets = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
+```
+
+```java
+void dfs(state){
+  if(!isValid(state))
+    return;
+	for all possible next_state:
+  	dfs(next_state)
+}
+```
+
+
+
+```java
+class Solution {
+    int[][] matrix;
+    int Rows;
+    int Cols;
+    int[][] Offsets = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
+    public List<List<Integer>> pacificAtlantic(int[][] matrix) {
+        if(matrix == null || matrix.length == 0) return new ArrayList<>();
+        this.matrix = matrix;
+        Rows = matrix.length;
+        Cols = matrix[0].length;
+        boolean[][] pacific = new boolean[Rows][Cols];
+        boolean[][] atalantic = new boolean[Rows][Cols];
+        
+        for(int r = 0; r < Rows; r++){
+            helper(r, 0, Integer.MIN_VALUE, pacific);
+            helper(r, Cols - 1, Integer.MIN_VALUE, atalantic);
+        }
+        for(int c = 0; c < Cols; c++){
+            helper(0, c, Integer.MIN_VALUE, pacific);
+            helper(Rows - 1, c, Integer.MIN_VALUE, atalantic);
+        }
+        List<List<Integer>> res = new ArrayList<>();
+        for(int r = 0; r < Rows; r++){
+            for(int c = 0; c < Cols; c++){
+                if(pacific[r][c] && atalantic[r][c]){
+                    res.add(Arrays.asList(r,c));
+                }
+            }
+        }
+        return res;
+    }
+    private void helper(int r, int c, int height, boolean[][] visited){
+        if(r<0||c<0||r==Rows||c==Cols)
+            return;
+        if(visited[r][c] || matrix[r][c] < height)
+            return;
+        visited[r][c] = true;
+        for(int[] offset: Offsets){
+            helper(r+offset[0], c+offset[1], matrix[r][c], visited);
+        }
+    }
+}
+```
+
+
+
+### 297. Serialize and Deserialize Binary Tree
+
+```java
+String[] dataSplit = data.split(",");
+List<String> dataList = new ArrayList<>(Arrays.asList(dataSplit));
+int val = Integer.valueOf(data.get(0));
+```
+
+
+
+```java
+public class Codec {
+
+    // Encodes a tree to a single string.
+    public String serialize(TreeNode root) {
+        return rSerialize(root, "");
+    }
+    private String rSerialize(TreeNode root, String temp){
+        if(root == null)
+            temp += "null,";
+        else {
+            temp += root.val + ",";
+            temp = rSerialize(root.left, temp);
+            temp = rSerialize(root.right, temp);
+        }
+        
+        return temp;
+    }
+
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        String[] dataSplit = data.split(",");
+        List<String> dataList = new ArrayList<>(Arrays.asList(dataSplit));
+        return rDeserialize(dataList);
+    }
+    
+    private TreeNode rDeserialize(List<String> data){
+        if(data.get(0).equals("null")){
+            data.remove(0);
+            return null;
+        }
+        int val = Integer.valueOf(data.get(0));
+        data.remove(0);
+        TreeNode root = new TreeNode(val);
+        root.left = rDeserialize(data);
+        root.right = rDeserialize(data);
+        return root;
+    }
+}
+```
+
+### 124. Binary Tree Maximum Path Sum
+
+define the helper as: return the max gain the root and one/zero of its subtrees could add to the current path: (root) or (root-left) or (root-right)
+
+after implement the recurrsion, use maxSum to record(root+left+right)
+
+```java
+class Solution {
+    int maxSum = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        helper(root);
+        return maxSum;
+    }
+    private int helper(TreeNode root){
+        if(root == null)
+            return 0;
+        int left = Math.max(0,helper(root.left));
+        int right = Math.max(0,helper(root.right));
+        
+        maxSum = Math.max(maxSum, root.val + left + right);
+        
+        return root.val + Math.max(left, right);
+    }
+}
+```
+
+### 687. Longest Univalue Path
+
+Let `dfs(node)` be the length of the longest arrow that extends from the `node`. That will be `1 + dfs(node.left)` if `node.left` exists and has the same value as `node`. 
+
+`arrowLeft = left + 1(if node.val = left.val) / 0; arrowRight = right + 1 / 0`
+
+`return max(arrowLeft, arrowRight)`
+
+While we are computing arrow lengths, each candidate answer will be the sum of the arrows in both directions from that node. We record these candidate answers and return the best one.
+
+so update the ans as `ans = max(ans, arrowLeft + arrowRight)`
+
+```java
+class Solution {
+    int ans;
+    public int longestUnivaluePath(TreeNode root) {
+        ans = 0;
+        dfs(root);
+        return ans;
+    }
+    private int dfs(TreeNode node){
+        if(node == null)
+            return 0;
+        int left = dfs(node.left);
+        int right = dfs(node.right);
+        int arrowLeft = 0, arrowRight = 0;
+        if (node.left != null && node.val == node.left.val){
+            arrowLeft = left + 1;
+        }
+        if (node.right != null && node.val == node.right.val){
+            arrowRight = right + 1;
+        }
+        ans = Math.max(ans, arrowLeft + arrowRight);
+        return Math.max(arrowLeft, arrowRight);
     }
 }
 ```
