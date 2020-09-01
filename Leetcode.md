@@ -1,3 +1,5 @@
+[toc]
+
 # Linked List(10)
 
 ### 138. Copy List with Random Pointer
@@ -2224,6 +2226,30 @@ class MyCalendar {
 
 ## Tree
 
+### 101. Symmetric Tree
+
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        if(root == null) return true;
+        return helper(root.left, root.right);
+    }
+    private boolean helper(TreeNode leftTree, TreeNode rightTree){
+        if(leftTree == null && rightTree == null){
+            return true;
+        }
+        if(leftTree == null || rightTree == null){
+            return false;
+        }
+        return leftTree.val == rightTree.val 
+          && helper(leftTree.left, rightTree.right) 
+          && helper(leftTree.right, rightTree.left);
+    }
+}
+```
+
+
+
 ### 894. All Possible Full Binary Trees
 
 use memo to record result of each N
@@ -2881,7 +2907,29 @@ class Solution {
 
 
 
-# DFS(11)
+# DFS(12)
+
+### 226. Invert Binary Tree
+
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        return helper(root);
+    }
+    private TreeNode helper(TreeNode root){
+        if(root == null){
+            return root;
+        }
+        TreeNode l = helper(root.left);
+        TreeNode r = helper(root.right);
+        root.left = r;
+        root.right = l;
+        return root;
+    }
+}
+```
+
+
 
 ### 938. Range Sum of BST
 
@@ -3275,6 +3323,30 @@ public class Codec {
 }
 ```
 
+
+
+### 543. Diameter of Binary Tree
+
+```java
+class Solution {
+    int res = 1;
+    public int diameterOfBinaryTree(TreeNode root) {
+        dfs(root);
+        return res - 1;
+    }
+    private int dfs(TreeNode root){
+        if(root == null)
+            return 0;
+        int l = dfs(root.left);
+        int r = dfs(root.right);
+        res = Math.max(res, l + r + 1);
+        return Math.max(l,r) + 1;
+    }
+}
+```
+
+
+
 ### 124. Binary Tree Maximum Path Sum
 
 define the helper as: return the max gain the root and one/zero of its subtrees could add to the current path: (root) or (root-left) or (root-right)
@@ -3335,6 +3407,463 @@ class Solution {
         }
         ans = Math.max(ans, arrowLeft + arrowRight);
         return Math.max(arrowLeft, arrowRight);
+    }
+}
+```
+
+
+
+###  785. Is Graph Bipartite
+
+use two colors to color the graph and see if there are any adjacent nodes having the same color.
+
+For each node,
+
+1. If it hasn't been colored, use a color to color it. Then use the other color to color all its adjacent nodes (DFS).
+2. If it has been colored, check if the current color is the same as the color that is going to be used to color it. (Please forgive my english... Hope you can understand it.)
+
+```java
+class Solution {
+    int[][] g;
+    int[] colors;
+    public boolean isBipartite(int[][] graph) {
+        g = graph;
+        int n = graph.length;
+        colors = new int[n];
+        for(int i = 0; i < n; i++){
+            if(colors[i] == 0 && !helper(i, 1))
+                return false;
+        }
+        return true;
+    }
+    private boolean helper(int i, int col){
+        if(colors[i] != 0)
+            return colors[i] == col;
+        colors[i] = col;
+        for(int j : g[i]){
+            if(!helper(j, -col))
+                return false;
+        }
+        return true;
+    }
+}
+```
+
+### 236. Lowest Common Ancestor of a Binary Tree
+
+```java
+class Solution {
+    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        dfs(root, null);
+        HashSet<TreeNode> set = new HashSet<>();
+        while(p != null){
+            set.add(p);
+            p = parent.get(p);
+        }
+        while(!set.contains(q))
+            q = parent.get(q);
+        
+        return q;
+    }
+    private void dfs(TreeNode node, TreeNode par){
+        if(node == null)
+            return;
+        parent.put(node, par);
+        dfs(node.left, node);
+        dfs(node.right, node);
+    }
+}
+```
+
+
+
+# BFS(9)
+
+### 102. Binary Tree Level Order Traversal
+
+```java
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        if(root == null) return new ArrayList<>();
+        Queue<TreeNode> queue = new LinkedList<>();
+        List<List<Integer>> res = new ArrayList<>();
+        queue.offer(root);
+        while(!queue.isEmpty()){
+            int size = queue.size();
+            List<Integer> level = new ArrayList<>();
+            for(int i = 0; i < size; i++){
+                TreeNode node = queue.poll();
+                level.add(node.val);
+                if(node.left != null)
+                    queue.offer(node.left);
+                if(node.right != null)
+                    queue.offer(node.right);
+            }
+            res.add(level);
+            
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 994. Rotting Oranges
+
+```java
+class Solution {
+    public int orangesRotting(int[][] grid) {
+        int Rows = grid.length;
+        int Cols = grid[0].length;
+        Queue<int[]> queue = new LinkedList<>();
+        int countFresh = 0;
+        for(int r = 0; r < Rows; r++){
+            for(int c = 0; c < Cols; c++){
+                if(grid[r][c] == 2){
+                    queue.offer(new int[]{r,c});
+                } else if (grid[r][c] == 1) {
+                    countFresh++;
+                }
+            }
+        }
+        if(countFresh == 0) return 0;
+        int countDay = -1;
+        int[][] offsets = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
+        while(!queue.isEmpty()){
+            countDay++;
+            int size = queue.size();
+            for(int i = 0; i < size; i++){
+                int[] point = queue.poll();
+                for(int[] offset: offsets){
+                    int r = point[0] + offset[0];
+                    int c = point[1] + offset[1];
+                    if(r<0||c<0||r==Rows||c==Cols)
+                        continue;
+                    if(grid[r][c]==2||grid[r][c]==0)
+                        continue;
+                    grid[r][c] = 2;
+                    countFresh--;
+                    queue.offer(new int[]{r,c});
+                }
+            }
+        }
+        return countFresh == 0? countDay : -1;
+    }
+}
+```
+
+### 199. Binary Tree Right Side View
+
+push last node in the current level into res
+
+```java
+class Solution {
+    public List<Integer> rightSideView(TreeNode root) {
+        if(root == null) return new LinkedList<>();
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        List<Integer> res = new LinkedList<>();
+        while(!queue.isEmpty()){
+            int size = queue.size();
+            for(int i = 0; i < size; i++){
+                TreeNode node = queue.poll();
+                if(i == size - 1){
+                    res.add(node.val);
+                }
+                if(node.left != null)
+                    queue.offer(node.left);
+                if(node.right != null)
+                    queue.offer(node.right);
+            }
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 127. Word Ladder
+
+1. Do the pre-processing on the given `wordList` and find all the possible generic/intermediate states. Save these intermediate states in a dictionary with key as the intermediate word and value as the list of words which have the same intermediate word.
+2. Push a tuple containing the `beginWord` and `1` in a queue. The `1` represents the level number of a node. We have to return the level of the `endNode` as that would represent the shortest sequence/distance from the `beginWord`.
+3. To prevent cycles, use a visited dictionary.
+4. While the queue has elements, get the front element of the queue. Let's call this word as `current_word`.
+5. Find all the generic transformations of the `current_word` and find out if any of these transformations is also a transformation of other words in the word list. This is achieved by checking the `all_combo_dict`.
+6. The list of words we get from `all_combo_dict` are all the words which have a common intermediate state with the `current_word`. These new set of words will be the adjacent nodes/words to `current_word` and hence added to the queue.
+7. Hence, for each word in this list of intermediate words, append `(word, level + 1)` into the queue where `level` is the level for the `current_word`.
+8. Eventually if you reach the desired word, its level would represent the shortest transformation sequence length.
+
+```java
+class Solution {
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        int L = beginWord.length();
+        // preprocess
+        HashMap<String, List<String>> pattern2Comb = new HashMap<>();
+        for(String word: wordList){
+            for(int i = 0; i < L; i++){
+                String pattern = word.substring(0,i) + "*" + word.substring(i+1);
+                List<String> comb = pattern2Comb.getOrDefault(pattern, new LinkedList<>());
+                comb.add(word);
+                pattern2Comb.put(pattern, comb);
+            }
+        }
+        // bfs
+        Queue<Pair<String, Integer>> queue = new LinkedList<>();
+        HashSet<String> visited = new HashSet<>();
+        queue.offer(new Pair(beginWord, 1));
+        visited.add(beginWord);
+        while(!queue.isEmpty()){
+            Pair<String, Integer> current = queue.poll();
+            String currentWord = current.getKey();
+            Integer level = current.getValue();
+          	// match
+            if(currentWord.equals(endWord))
+                return level;
+            for(int i = 0; i < L; i++){
+                String pattern = currentWord.substring(0,i) + "*" + currentWord.substring(i+1);
+                List<String> allComb = pattern2Comb.getOrDefault(pattern, new ArrayList<>());
+                for(String nextWord: allComb){
+                    if(!visited.contains(nextWord)){
+                        queue.offer(new Pair(nextWord,level+1));
+                        visited.add(nextWord);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+}
+```
+
+
+
+### 314. Binary Tree Vertical Order Traversal
+
+we create a hash table named `columnTable` to keep track of the results.
+
+At each iteration within the BFS, we pop out an element from the queue. The element consists of a `node` and its corresponding `column` index. If the node is not empty, we then populate the `columnTable` with the value of the node. Subsequently, we then put its child nodes along with their respective column indices (*i.e.* `column-1` and `column+1`) into the queue.
+
+We then sort the hash table by its keys, *i.e.* `column` index in ascending order. And finally we return the results *column by column*.
+
+```java
+class Solution {
+    public List<List<Integer>> verticalOrder(TreeNode root) {
+        if(root == null) return new ArrayList<>();
+        HashMap<Integer, List<Integer>> columnTable = new HashMap<>();
+        Queue<Pair<TreeNode, Integer>> queue = new LinkedList<>();
+        queue.offer(new Pair(root, 0));
+        while(!queue.isEmpty()){
+            Pair<TreeNode, Integer> pair = queue.poll();
+            TreeNode node = pair.getKey();
+            Integer col = pair.getValue();
+            if(!columnTable.containsKey(col))
+                columnTable.put(col, new ArrayList<>());
+            columnTable.get(col).add(node.val);
+            if(node.left != null){
+                queue.offer(new Pair(node.left, col - 1));
+            }
+            if(node.right != null){
+                queue.offer(new Pair(node.right, col + 1));
+            }
+        }
+        List<Integer> cols = new ArrayList<>(columnTable.keySet());
+        Collections.sort(cols);
+        List<List<Integer>> res = new ArrayList<>();
+        for(int col: cols){
+            res.add(new ArrayList<>(columnTable.get(col)));
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 863. All Nodes Distance K in Binary Tree
+
+We first do a depth first search where we annotate every node with information about it's parent.
+
+After, we do a breadth first search to find all nodes a distance `K` from the `target`.
+
+```java
+class Solution {
+    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
+    public List<Integer> distanceK(TreeNode root, TreeNode target, int K) {
+        List<Integer> res = new ArrayList<>();
+        // find parents
+        helper(root, null);
+        // bfs
+        Queue<Pair<TreeNode, Integer>> queue = new LinkedList<>();
+        HashSet<TreeNode> visited = new HashSet<>();
+        queue.offer(new Pair(target, 0));
+        visited.add(target);
+        while(!queue.isEmpty()){
+            int size = queue.size();
+            int level = 0;
+            for(int i = 0; i < size; i++){
+                Pair<TreeNode, Integer> pair = queue.poll();
+                TreeNode node = pair.getKey();
+                level = pair.getValue();
+                if(level == K){
+                    res.add(node.val);
+                }
+                for(TreeNode next: Arrays.asList(node.left, node.right, parent.get(node))){
+                    if(next != null && !visited.contains(next)){
+                        queue.offer(new Pair(next,level+1));
+                        visited.add(next);
+                    }
+                }
+            }
+            if(level == K)
+                return res;
+        }
+        return new ArrayList<>();
+    }
+    
+    private void helper(TreeNode node, TreeNode par){
+        if (node == null){
+            return;
+        }
+        parent.put(node, par);
+        helper(node.left, node);
+        helper(node.right, node);
+    }
+}
+```
+
+
+
+### 103. Binary Tree Zigzag Level Order Traversal
+
+```java
+class Solution {
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+        if (root == null)
+            return new ArrayList<>();
+        List<List<Integer>> res = new ArrayList<>();
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        int level = 0;
+        TreeNode node = null;
+        while(!q.isEmpty()){
+            List<Integer> tmp = new ArrayList<>();
+            int size = q.size();
+            for(int i = 0; i < size; i++){
+                node = q.poll();
+                if(level % 2 == 1)
+                    tmp.add(0, node.val);
+                else {
+                    tmp.add(node.val);
+                }
+                if(node.left != null){
+                    q.offer(node.left);
+                }
+                if(node.right != null){
+                    q.offer(node.right);
+                }
+                   
+            }
+            res.add(tmp);
+            level += 1;
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 133. Clone Graph
+
+```java
+class Solution {
+    public Node cloneGraph(Node node) {
+        if(node == null) return null;
+        Queue<Node> q = new LinkedList<>();
+        HashMap<Node, Node> map = new HashMap<>();
+        q.offer(node);
+        map.put(node, new Node(node.val, new ArrayList<>()));
+        while(!q.isEmpty()){
+            Node n = q.poll();
+            for(Node neighbor: n.neighbors){
+                if(!map.containsKey(neighbor)){
+                    q.offer(neighbor);
+                    map.put(neighbor, new Node(neighbor.val, new ArrayList<>()));
+                }
+                map.get(n).neighbors.add(map.get(neighbor));
+            }
+        }
+        return map.get(node);
+    }
+}
+```
+
+
+
+### 934. Shortest Bridge
+
+```java
+class Solution {
+    int[][] A;
+    int R = 0;
+    int C = 0;
+    boolean[][] visited;
+    Queue<int[]> q = new LinkedList<>();
+    int[] rOffsets = new int[]{0,0,1,-1};
+    int[] cOffsets = new int[]{1,-1,0,0};
+    
+    public int shortestBridge(int[][] A) {
+        this.A = A;
+        R = A.length;
+        C = A[0].length;
+        visited = new boolean[R][C];
+        
+        // find the first island, mark visited, add to queue for BFS
+        findIsland: {
+            for(int i = 0; i < R; i++){
+                for(int j = 0; j < C; j++){
+                    if(A[i][j] == 1){
+                        dfs(i, j);
+                        break findIsland;
+                    }
+                }
+            }
+        }
+        
+        // use BFS to find steps
+        int step = 0;
+        while(!q.isEmpty()){
+            int size = q.size();
+            for(int i = 0; i < size; i++){
+                int[] curr = q.poll();
+                for(int j = 0; j < 4; j++){
+                    int newR = curr[0] + rOffsets[j];
+                    int newC = curr[1] + cOffsets[j];
+                    if(newR >= 0 && newR < R && newC >= 0 && newC < C && !visited[newR][newC]){
+                        if(A[newR][newC] == 1)
+                            return step;
+                        q.offer(new int[]{newR,newC});
+                        visited[newR][newC] = true;
+                    }
+                }
+            }
+            step += 1;
+        }
+        return -1;
+    }
+    private void dfs(int r, int c){
+        if(r < 0 || r >= R || c < 0 || c >= C || A[r][c] == 0 || visited[r][c])
+            return;
+        q.offer(new int[]{r,c});
+        visited[r][c] = true;
+        for(int i = 0; i < 4; i++){
+            int newR = r + rOffsets[i];
+            int newC = c + cOffsets[i];
+            dfs(newR, newC);
+        }
     }
 }
 ```
