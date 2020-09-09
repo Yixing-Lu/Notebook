@@ -2727,7 +2727,7 @@ def backtrack(candidate):
 
 ![Screen Shot 2020-08-05 at 2.42.39 PM](/Users/yixing/Documents/New/WorkSpace/Notebook/images/Screen Shot 2020-08-05 at 2.42.39 PM.png)
 
-## i = 0, use visited
+## Permutation
 
 ### 46. Permutations`[1,2][2,1]`  `i=0`
 
@@ -2790,19 +2790,58 @@ class Solution {
             return;
         }
         for(int i = 0; i < nums.length; i++){
-            if(visited.contains(i)) continue;
-            if(i>0 && nums[i] == nums[i-1] && !visited.contains(i-1)) continue;
-                visited.add(i);
-                temp.add(nums[i]);
-                helper(temp);
-                temp.remove(temp.size()-1);
-                visited.remove(i);
+            if(visited.contains(i)) 
+                continue;
+            if(i>0 && nums[i] == nums[i-1] && !visited.contains(i-1)) 
+                continue;
+            visited.add(i);
+            temp.add(nums[i]);
+            helper(temp);
+            temp.remove(temp.size()-1);
+            visited.remove(i);
         }
     }
 }
 ```
 
-## i = start
+### 22. Generate Parentheses
+
+First, the first character should be “(“. Second, at each step, you can either print “(“ or “)”, but print “)” only when there are more “(“s than “)”s. Stop printing out “(“ when the number of “(“ s hit n. 
+
+![IMG_5CB076502EFD-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_5CB076502EFD-1.jpeg)
+
+```java
+class Solution {
+    List<String> res;
+    int n;
+    public List<String> generateParenthesis(int n) {
+        res = new ArrayList<>();
+        this.n = n;
+        helper("", 0,0);
+        return res;
+    }
+    private void helper(String currString, int open, int end){
+        if(currString.length() == 2 * n){
+            res.add(currString);
+            return;
+        }
+        if(open < n){
+            // helper(currString + "(", open+1, end);
+          	currString += "(";
+            helper(currString, open+1, end);
+            currString = currString.substring(0,currString.length()-1);
+        }
+        if(end < open){
+            helper(currString + ")", open, end+1);
+        }
+            
+    }
+}
+```
+
+### 
+
+## Combination
 
 ### 78. Subsets`[1][2][1,2]` 
 
@@ -2847,7 +2886,8 @@ class Solution {
     private void helper(List<Integer> temp, int start){
         res.add(new ArrayList<>(temp));
         for(int i = start; i < nums.length; i++){
-            if(i> start && nums[i] == nums[i-1]) continue;
+            if(i> start && nums[i] == nums[i-1]) 
+              continue;
             temp.add(nums[i]);
             helper(temp, i+ 1);
             temp.remove(temp.size()-1);
@@ -2988,14 +3028,114 @@ class Solution {
     private void helper(String currString, int index){
         if(digits.length() == index){
             res.add(currString);
-        } else {
-            String letters = phone.get(digits.charAt(index));
-            for(char c: letters.toCharArray()){
-                currString += c;
-                helper(currString, index + 1);
-                currString = currString.substring(0,currString.length()-1);
+            return;
+        }
+        String letters = phone.get(digits.charAt(index));
+        for(char c: letters.toCharArray()){
+            helper(currString + c, index + 1);
+        }
+    }
+}
+```
+
+
+
+## Search
+
+### 79. Word Search
+
+helper(int r, int c, int index): return true, if we can match `word.substring(index)` from `board[r][c]`
+
+
+
+```java
+class Solution {
+    char[][] board;
+    String word;
+    int R, C;
+    int[] rowOffsets = new int[]{0,1,0,-1};
+    int[] colOffsets = new int[]{1,0,-1,0};
+    public boolean exist(char[][] board, String word) {
+        this.board = board;
+        this.word = word;
+        R = board.length;
+        C = board[0].length;
+        for(int r = 0; r < R; r++){
+            for(int c = 0; c < C; c++){
+                if(helper(r,c,0))
+                    return true;
             }
         }
+        return false;
+        
+    }
+    private boolean helper(int r, int c, int index){
+        if(board[r][c] != word.charAt(index)){
+            return false;
+        }
+        if(index == word.length() - 1)
+            return true;
+        
+        board[r][c] = '#';
+        for(int i = 0; i < 4; i++){
+            int nr = r+rowOffsets[i];
+            int nc = c+colOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc== C)
+                continue;
+            if(helper(nr, nc, index + 1))
+                return true;
+        }
+        board[r][c] = word.charAt(index);
+        return false;
+    }
+}
+```
+
+
+
+### 698. Partition to K Equal Sum Subsets
+
+canPartition: if can use unvisited element with currentSum to  partition to K subset, then return true;
+
+for each round: if currSum == target, k--
+
+Else: select the unvisited element & currSum + e <= target
+
+Mark new element, keep search with new CurrSum to check if this step is good
+
+if bad, backtrack this step.
+
+Use start to avoid duplication calculation 
+
+```java
+class Solution {
+    int[] nums;
+    int target;
+    boolean[] visited;
+    public boolean canPartitionKSubsets(int[] nums, int k) {
+        this.nums = nums;
+        visited = new boolean[nums.length];
+        int sum = 0;
+        for(int n: nums)
+            sum += n;
+        if(sum%k != 0) return false;
+        target = sum / k;
+        return canPartition(0,k,0);
+    }
+    private boolean canPartition(int currSum, int k, int start){
+        if(k==1) return true;
+        if(currSum == target){
+            return canPartition(0, k-1,0);
+        }
+        for(int i = start; i < nums.length; i++){
+            if(!visited[i] && currSum + nums[i] <= target){
+                visited[i] = true;
+                if(canPartition(currSum + nums[i], k, i+1))
+                    return true;
+                visited[i] = false;
+            }
+        }
+        return false;
     }
 }
 ```
@@ -3039,100 +3179,6 @@ class Solution {
     }
 }
 ```
-
-## Search Boolean
-
-### 79. Word Search
-
-helper(int r, int c, int index): return true, if we can match `word.substring(index)` from `board[r][c]`
-
-
-
-```java
-class Solution {
-    char[][] board;
-    int Rows, Cols;
-    String word;
-    public boolean exist(char[][] board, String word) {
-        this.board = board;
-        this.word = word;
-        Rows = board.length;
-        Cols = board[0].length;
-        for(int r = 0; r < Rows; r++)
-            for(int c = 0; c < Cols; c++)
-                if(helper(r,c,0))
-                    return true;
-        return false;
-    }
-    private boolean helper(int r, int c, int index){
-        if(index >= word.length())
-            return true;
-        if(r<0 || r==Rows || c<0 || c==Cols || board[r][c]!=word.charAt(index))
-            return false;
-      
-        board[r][c] = '#';
-        int[] rowOffsets = new int[]{0,1,0,-1};
-        int[] colOffsets = new int[]{1,0,-1,0};
-        for(int i = 0; i < 4; i++)
-            if(helper(r+rowOffsets[i],c+colOffsets[i], index + 1))
-                return true;
-        board[r][c] = word.charAt(index);
-      
-        return false;
-    }
-}
-```
-
-
-
-### 698. Partition to K Equal Sum Subsets
-
-canPartition: if can use unvisited element with currentSum to  partition to K subset, then return true;
-
-for each round: if currSum == target, k--
-
-Else: select the unvisited element & currSum + e <= target
-
-Mark new element, keep search with new CurrSum to check if this step is good
-
-if bad, backtrack this step.
-
-Use start to avoid duplication calculation 
-
-```java
-class Solution {
-    int[] nums;
-    int target;
-    boolean[] visited;
-    public boolean canPartitionKSubsets(int[] nums, int k) {
-        this.nums = nums;
-        visited = new boolean[nums.length];
-        int sum = 0;
-        for(int n: nums)
-            sum += n;
-        if(sum%k != 0) return false;
-        target = sum / k;
-        return canPartition(0,k,0);
-    }
-    private boolean canPartition(int currSum, int k, int start){
-        if(k==1) return true;
-        if(currSum == target){
-            return canPartition(0, k-1,0);
-        }
-        for(int i = start; i < nums.length; i++){
-            if(visited[i]==false && currSum + nums[i] <= target){
-                visited[i] = true;
-                if(canPartition(currSum + nums[i], k, i+1))
-                    return true;
-                visited[i] = false;
-            }
-        }
-        return false;
-    }
-}
-```
-
-
 
 ### 51. N-Queens
 
@@ -3200,44 +3246,7 @@ class Solution {
 }
 ```
 
-
-
-### 22. Generate Parentheses
-
-First, the first character should be “(“. Second, at each step, you can either print “(“ or “)”, but print “)” only when there are more “(“s than “)”s. Stop printing out “(“ when the number of “(“ s hit n. 
-
-![IMG_5CB076502EFD-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_5CB076502EFD-1.jpeg)
-
-```java
-class Solution {
-    List<String> res;
-    int n;
-    public List<String> generateParenthesis(int n) {
-        res = new ArrayList<>();
-        this.n = n;
-        helper("", 0,0);
-        return res;
-    }
-    private void helper(String currString, int open, int end){
-        if(currString.length() == 2 * n){
-            res.add(currString);
-            return;
-        }
-        if(open < n){
-            // helper(currString + "(", open+1, end);
-          	currString += "(";
-            helper(currString, open+1, end);
-            currString = currString.substring(0,currString.length()-1);
-        }
-        if(end < open){
-            helper(currString + ")", open, end+1);
-        }
-            
-    }
-}
-```
-
-
+### 
 
 # DFS(21)
 
