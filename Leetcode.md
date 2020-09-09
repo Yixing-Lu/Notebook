@@ -2224,7 +2224,403 @@ class MyCalendar {
 
 # Recursion(4)
 
-## Generate
+## Tree
+
+### 226. Invert Binary Tree
+
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        return helper(root);
+    }
+    private TreeNode helper(TreeNode root){
+        if(root == null){
+            return root;
+        }
+        TreeNode l = helper(root.left);
+        TreeNode r = helper(root.right);
+        root.left = r;
+        root.right = l;
+        return root;
+    }
+}
+```
+
+### 101. Symmetric Tree
+
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        if(root == null) return true;
+        return helper(root.left, root.right);
+    }
+    private boolean helper(TreeNode leftTree, TreeNode rightTree){
+        if(leftTree == null && rightTree == null){
+            return true;
+        }
+        if(leftTree == null || rightTree == null){
+            return false;
+        }
+        return leftTree.val == rightTree.val 
+          && helper(leftTree.left, rightTree.right) 
+          && helper(leftTree.right, rightTree.left);
+    }
+}
+```
+
+
+
+### 938. Range Sum of BST
+
+```java
+class Solution {
+    int L, R;
+    public int rangeSumBST(TreeNode root, int L, int R) {
+        this.L = L;
+        this.R = R;
+        return helper(root);
+    }
+    private int helper(TreeNode node){
+        if(node == null) return 0;
+        if(L <= node.val && node.val <= R){
+            return node.val + helper(node.left) + helper(node.right);
+        }
+        else if (node.val < L)
+            return helper(node.right);
+        else
+            return helper(node.left);
+    }
+}
+```
+
+
+
+### 98. Validate Binary Search Tree
+
+not just check root.val with left.val and right.val
+
+use an interval [low,high] to make sure root inside this interval
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return helper(root, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+    private boolean helper(TreeNode root, int low, int high){
+        if(root == null) return true;
+        if(root.val <= low || root.val >= high)
+            return false;
+        if(!helper(root.left, low, root.val))
+            return false;
+        if(!helper(root.right, root.val, high))
+            return false;
+        return true;
+    }
+}
+```
+
+
+
+To avoid Integer.MAX
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return helper(root, null, null);
+    }
+    private boolean helper(TreeNode root, Integer low, Integer high){
+        if(root == null) return true;
+        if((low!=null && root.val <= low) || (high!=null&&root.val >= high))
+            return false;
+        if(!helper(root.left, low, root.val))
+            return false;
+        if(!helper(root.right, root.val, high))
+            return false;
+        return true;
+    }
+}
+```
+
+
+
+### 236. Lowest Common Ancestor of a Binary Tree
+
+```java
+class Solution {
+    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        dfs(root, null);
+        HashSet<TreeNode> set = new HashSet<>();
+        while(p != null){
+            set.add(p);
+            p = parent.get(p);
+        }
+        while(!set.contains(q))
+            q = parent.get(q);
+        
+        return q;
+    }
+    private void dfs(TreeNode node, TreeNode par){
+        if(node == null)
+            return;
+        parent.put(node, par);
+        dfs(node.left, node);
+        dfs(node.right, node);
+    }
+}
+```
+
+
+
+### 297. Serialize and Deserialize Binary Tree
+
+```java
+String[] dataSplit = data.split(",");
+List<String> dataList = new ArrayList<>(Arrays.asList(dataSplit));
+int val = Integer.valueOf(data.get(0));
+```
+
+
+
+```java
+public class Codec {
+
+    // Encodes a tree to a single string.
+    public String serialize(TreeNode root) {
+        return rSerialize(root, "");
+    }
+    private String rSerialize(TreeNode root, String temp){
+        if(root == null)
+            temp += "null,";
+        else {
+            temp += root.val + ",";
+            temp = rSerialize(root.left, temp);
+            temp = rSerialize(root.right, temp);
+        }
+        
+        return temp;
+    }
+
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        String[] dataSplit = data.split(",");
+        List<String> dataList = new ArrayList<>(Arrays.asList(dataSplit));
+        return rDeserialize(dataList);
+    }
+    
+    private TreeNode rDeserialize(List<String> data){
+        if(data.get(0).equals("null")){
+            data.remove(0);
+            return null;
+        }
+        int val = Integer.valueOf(data.get(0));
+        data.remove(0);
+        TreeNode root = new TreeNode(val);
+        root.left = rDeserialize(data);
+        root.right = rDeserialize(data);
+        return root;
+    }
+}
+```
+
+### 105. Construct Binary Tree from Preorder and Inorder Traversal
+
+The first element in the *preorder* list is a root. This root splits *inorder* list into left and right subtrees.
+
+Trick part is to update start and end of preorder and inorder
+
+we use instart and inend to exist, use prestart to get the value of root, so we don't need preend
+
+![IMG_1D73F62B8D43-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_1D73F62B8D43-1.jpeg)
+
+```JAVA
+class Solution {
+    HashMap<Integer, Integer> val2Index = new HashMap<>();
+    int[] preorder;
+    int[] inorder;
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        this.preorder = preorder;
+        this.inorder = inorder;
+        for(int i = 0; i < inorder.length; i++){
+            val2Index.put(inorder[i], i);
+        }
+        return helper(0,0,inorder.length-1);
+    }
+    private TreeNode helper(int preStart, int inStart, int inEnd){
+        if(inStart > inEnd)
+            return null;
+        int val = preorder[preStart];
+        TreeNode root = new TreeNode(val);
+        int index = val2Index.get(val);
+        root.left = helper(preStart+1,inStart,index-1);
+        root.right = helper(preStart+index-inStart + 1,index+1,inEnd);
+        return root;
+    }
+}
+```
+
+### 894. All Possible Full Binary Trees(memo)
+
+use memo to record result of each N
+
+if there are N ndoe, x node in left subtree,  then there are N - 1 - x right subtree
+
+permutation for each possible left tree and right tree
+
+```java
+class Solution {
+    HashMap<Integer, List<TreeNode>> memo = new HashMap<>();
+    public List<TreeNode> allPossibleFBT(int N) {
+        if(!memo.containsKey(N)){
+            List<TreeNode> res = new LinkedList<>();
+            if(N == 1)
+                res.add(new TreeNode(0));
+            else if(N%2 == 1){
+                for(int x = 0; x < N; x++){
+                    int y = N - 1 - x;
+                    for(TreeNode left: allPossibleFBT(x)){
+                        for(TreeNode right: allPossibleFBT(y)){
+                            TreeNode root = new TreeNode(0);
+                            root.left = left;
+                            root.right = right;
+                            res.add(root);
+                        }
+                    }
+                }
+            }
+            memo.put(N, res);
+        }
+        return memo.get(N);
+    }
+}
+```
+
+
+
+## Update different res when dfs
+
+### 543. Diameter of Binary Tree
+
+```java
+class Solution {
+    int res = 1;
+    public int diameterOfBinaryTree(TreeNode root) {
+        dfs(root);
+        return res - 1;
+    }
+    private int dfs(TreeNode root){
+        if(root == null)
+            return 0;
+        int l = dfs(root.left);
+        int r = dfs(root.right);
+        res = Math.max(res, l + r + 1);
+        return Math.max(l,r) + 1;
+    }
+}
+```
+
+###  366. Find Leaves of Binary Tree
+
+The key is to find the height of each node. Here the definition of height is:
+The height of a node is the number of edges from the node to the deepest leaf. 
+
+The height of a node is also the its index in the result list (res)
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    public List<List<Integer>> findLeaves(TreeNode root) {
+        height(root);
+        return res;
+    }
+    private int height(TreeNode root){
+        if(root == null)
+            return -1;
+        int l = height(root.left);
+        int r = height(root.right);
+        int h = 1 + Math.max(l, r);
+        if(h >= res.size()) 
+            res.add(new ArrayList<>());
+        res.get(h).add(root.val);
+        return h;
+    }
+}
+```
+
+### 
+
+### 124. Binary Tree Maximum Path Sum
+
+define the helper as: return the max gain the root and one/zero of its subtrees could add to the current path: (root) or (root-left) or (root-right)
+
+after implement the recurrsion, use maxSum to record(root+left+right)
+
+```java
+class Solution {
+    int maxSum = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        helper(root);
+        return maxSum;
+    }
+    private int helper(TreeNode root){
+        if(root == null)
+            return 0;
+        int l = helper(root.left);
+        int r = helper(root.right);
+        int left = Math.max(0,l);
+        int right = Math.max(0,r);
+        
+        maxSum = Math.max(maxSum, root.val + left + right);
+        
+        return root.val + Math.max(left, right);
+    }
+}
+```
+
+### 687. Longest Univalue Path
+
+Let `dfs(node)` be the length of the longest arrow that extends from the `node`. That will be `1 + dfs(node.left)` if `node.left` exists and has the same value as `node`. 
+
+`arrowLeft = left + 1(if node.val = left.val) / 0; arrowRight = right + 1 / 0`
+
+`return max(arrowLeft, arrowRight)`
+
+While we are computing arrow lengths, each candidate answer will be the sum of the arrows in both directions from that node. We record these candidate answers and return the best one.
+
+so update the ans as `ans = max(ans, arrowLeft + arrowRight)`
+
+```java
+class Solution {
+    int ans;
+    public int longestUnivaluePath(TreeNode root) {
+        ans = 0;
+        dfs(root);
+        return ans;
+    }
+    private int dfs(TreeNode node){
+        if(node == null)
+            return 0;
+        int l = dfs(node.left);
+        int r = dfs(node.right);
+        
+        int left = 0, right = 0;
+        if (node.left != null && node.val == node.left.val){
+            left = l + 1;
+        }
+        if (node.right != null && node.val == node.right.val){
+            right = r + 1;
+        }
+        
+        ans = Math.max(ans, left + right);
+        
+        return Math.max(left, right) ;
+    }
+}
+```
+
+
+
+## Other
 
 ### 247. Strobogrammatic Number II
 
@@ -2304,7 +2700,7 @@ class Solution {
 }
 ```
 
-
+## 
 
 # Backtracking(13)
 
@@ -2354,15 +2750,15 @@ class Solution {
     private void helper(List<Integer> tempList){
         if(tempList.size() == nums.length){
             res.add(new ArrayList<>(tempList));
-        } else {
-            for(int n: nums){
-                if(!visited.contains(n)){
-                    visited.add(n);
-                    tempList.add(n);
-                    helper(tempList);
-                    tempList.remove(tempList.size() - 1);
-                    visited.remove(n);
-                }
+            return;
+        }
+        for(int n: nums){
+            if(!visited.contains(n)){
+                visited.add(n);
+                tempList.add(n);
+                helper(tempList);
+                tempList.remove(tempList.size() - 1);
+                visited.remove(n);
             }
         }
     }
@@ -2845,270 +3241,25 @@ class Solution {
 
 # DFS(21)
 
-## Connected Component
-
-### 200. Number of Islands
-
-```JAVA
-class Solution {
-    char[][] grid;
-    public int numIslands(char[][] grid) {
-        this.grid = grid;
-        int count = 0;
-        for(int r = 0; r < grid.length; r++)
-            for(int c = 0; c < grid[0].length; c++)
-                if(grid[r][c] == '1'){
-                    count++;
-                    dfs(r,c);
-                }
-        return count;
-    }
-    private void dfs(int r, int c){
-        if(r<0 || r==grid.length||c<0||c==grid[0].length||grid[r][c]=='0')
-            return;
-        
-        grid[r][c] = '0';
-        int[] rowOffsets = new int[]{0,0,1,-1};
-        int[] colOffsets = new int[]{1,-1,0,0};
-        for(int i = 0; i < 4; i++){
-            dfs(r + rowOffsets[i], c + colOffsets[i]);
-        }
-    }
-}
-```
-
-```java
-class Solution {
-    char[][] grid;
-    boolean[][] visited;
-    public int numIslands(char[][] grid) {
-        if(grid.length == 0) return 0;
-        visited = new boolean[grid.length][grid[0].length];
-        this.grid = grid;
-        int count = 0;
-        for(int r = 0; r < grid.length; r++)
-            for(int c = 0; c < grid[0].length; c++)
-                if(!visited[r][c]&&grid[r][c]=='1'){
-                    count++;
-                    dfs(r,c);
-                }
-        return count;
-    }
-    private void dfs(int r, int c){
-        if(r<0 || r==grid.length||c<0||c==grid[0].length||grid[r][c]=='0'||visited[r][c])
-            return;
-        visited[r][c]=true;
-        int[] rowOffsets = new int[]{0,0,1,-1};
-        int[] colOffsets = new int[]{1,-1,0,0};
-        for(int i = 0; i < 4; i++){
-            dfs(r + rowOffsets[i], c + colOffsets[i]);
-        }
-    }
-}
-```
-
-### 695. Max Area of Island
-
-```java
-class Solution {
-    int[][] grid;
-    int rows;
-    int cols;
-    boolean[][] visited;
-    int count = 0;
-
-    public int maxAreaOfIsland(int[][] grid) {
-        this.grid = grid;
-        rows = grid.length;
-        cols = grid[0].length;
-        visited = new boolean[rows][cols];
-        int res = 0;
-        for(int r = 0; r < rows; r++){
-            for(int c = 0; c < cols; c++){
-                if(grid[r][c] == 1 && !visited[r][c]){
-                    helper(r,c);
-                    res = Math.max(res, count);
-                    count = 0;
-                }
-            }
-        }
-        return res;
-    }
-    private void helper(int r, int c){
-        if(r<0||r==rows||c<0||c==cols||grid[r][c]==0||visited[r][c]){
-            return;
-        }
-        visited[r][c] = true;
-        count+=1;
-        int[] rOffsets = new int[]{0,0,1,-1};
-        int[] cOffsets = new int[]{1,-1,0,0};
-        for(int i = 0; i < 4; i++){
-            helper(r + rOffsets[i], c + cOffsets[i]);
-        }
-    }
-}
-```
-
-### 547. Friend Circles
-
-number of connected components in an undirected graph
-
-start from every node which isn't visited right now and apply DFS starting with it. We increment the count of connected components for every new starting node.
-
-```java
-class Solution {
-    boolean[] visited;
-    int[][] M;
-    public int findCircleNum(int[][] M) {
-        this.M = M;
-        int n = M.length;
-        visited = new boolean[n];
-        int count = 0;
-        for(int i = 0; i < n; i++){
-            if(!visited[i]){
-                helper(i);
-                count++;
-            }
-        }
-        return count;
-    }
-  // mark i and his frind as visited
-    private void helper(int i){
-        visited[i] = true;
-        for(int j = 0; j < visited.length; j++){
-            if(M[i][j] == 1&&!visited[j]){
-                helper(j);
-            }
-        }
-    }
-}
-```
-
-### 417. Pacific Atlantic Water Flow
-
-Start from ocean instead of each point in matrix, reduce time from n^2 to n
-
-```java
-int[][] Offsets = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
-```
-
-```java
-void dfs(state){
-  if(!isValid(state))
-    return;
-	for all possible next_state:
-  	dfs(next_state)
-}
-```
-
-
+### 329. Longest Increasing Path in a Matrix(graph: weight-vertex)
 
 ```java
 class Solution {
     int[][] matrix;
-    int Rows;
-    int Cols;
-    int[][] Offsets = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
-    public List<List<Integer>> pacificAtlantic(int[][] matrix) {
-        if(matrix == null || matrix.length == 0) return new ArrayList<>();
-        this.matrix = matrix;
-        Rows = matrix.length;
-        Cols = matrix[0].length;
-        boolean[][] pacific = new boolean[Rows][Cols];
-        boolean[][] atalantic = new boolean[Rows][Cols];
-        
-        for(int r = 0; r < Rows; r++){
-            helper(r, 0, Integer.MIN_VALUE, pacific);
-            helper(r, Cols - 1, Integer.MIN_VALUE, atalantic);
-        }
-        for(int c = 0; c < Cols; c++){
-            helper(0, c, Integer.MIN_VALUE, pacific);
-            helper(Rows - 1, c, Integer.MIN_VALUE, atalantic);
-        }
-        List<List<Integer>> res = new ArrayList<>();
-        for(int r = 0; r < Rows; r++){
-            for(int c = 0; c < Cols; c++){
-                if(pacific[r][c] && atalantic[r][c]){
-                    res.add(Arrays.asList(r,c));
-                }
-            }
-        }
-        return res;
-    }
-    private void helper(int r, int c, int height, boolean[][] visited){
-        if(r<0||c<0||r==Rows||c==Cols)
-            return;
-        if(visited[r][c] || matrix[r][c] < height)
-            return;
-        visited[r][c] = true;
-        for(int[] offset: Offsets){
-            helper(r+offset[0], c+offset[1], matrix[r][c], visited);
-        }
-    }
-}
-```
-
-### 130. Surrounded Regions
-
-```java
-class Solution {
-    boolean[][] visited;
-    int[] rOffsets = new int[]{1,-1,0,0};
-    int[] cOffsets = new int[]{0,0,1,-1};
-    char[][] Board;
     int R;
     int C;
-    public void solve(char[][] board) {
-        if(board.length == 0) return;
-        Board = board;
-        R = board.length;
-        C = board[0].length;
-        visited = new boolean[R][C];
-        for(int r = 0; r < R; r++){
-            dfs(r,0);
-            dfs(r,C-1);
-        }
-        for(int c = 0; c < C; c++){
-            dfs(0,c);
-            dfs(R-1,c);
-        }
-        for(int r = 0; r < R; r++){
-            for(int c = 0; c < C; c++){
-                if(board[r][c] == 'O' && !visited[r][c])
-                    board[r][c] = 'X';
-            }
-        }
-    }
-    public void dfs(int r, int c){
-        if(r < 0 || r >= R || c < 0 || c >= C)
-            return;
-        if(visited[r][c] || Board[r][c] != 'O')
-            return;
-        visited[r][c] = true;
-        for(int i = 0; i < 4; i++){
-            int nr = r + rOffsets[i];
-            int nc = c + cOffsets[i];
-            dfs(nr,nc);
-        }
-    }
-}
-```
-
-### 329. Longest Increasing Path in a Matrix
-
-```java
-class Solution {
     int[][] memo;
     int[] rOffsets = new int[]{1,-1,0,0};
     int[] cOffsets = new int[]{0,0,1,-1};
-    int[][] matrix;
     public int longestIncreasingPath(int[][] matrix) {
         if(matrix.length == 0) return 0;
         this.matrix = matrix;
-        memo = new int[matrix.length][matrix[0].length];
+        R = matrix.length;
+        C = matrix[0].length;
+        memo = new int[R][C];
         int res = 1;
-        for(int i = 0; i < matrix.length; i++){
-            for(int j = 0; j < matrix[0].length; j++){
+        for(int i = 0; i < R; i++){
+            for(int j = 0; j < C; j++){
                 res = Math.max(res, dfs(i,j));
             }
         }
@@ -3117,82 +3268,24 @@ class Solution {
     private int dfs(int r, int c){
         if(memo[r][c] != 0)
             return memo[r][c];
-        else {
-            int res = 1;
-            for(int i = 0; i < 4; i++){
-                int nr = r + rOffsets[i];
-                int nc = c + cOffsets[i];
-                if(nr >= 0 && nr < memo.length && nc >= 0 && nc < memo[0].length){
-                    if(matrix[nr][nc] > matrix[r][c]){
-                        int tmp = 1 + dfs(nr,nc);
-                        res = Math.max(res, tmp);
-                    }
-                }
-            }
-            memo[r][c] = res;
-            return res;
-        }
-    }
-}
-```
-
-
-
-### 721. Accounts Merge
-
-```java
-class Solution {
-    List<String> temp;
-    HashMap<String, Set<String>> graph = new HashMap<>();
-    Set<String> visited = new HashSet<>();;
-    public List<List<String>> accountsMerge(List<List<String>> accounts) {
-        for(List<String> account : accounts){
-            for(int i = 1; i < account.size(); i++){
-                String email = account.get(i);
-                if(!graph.containsKey(email)){
-                    graph.put(email, new HashSet<>());
-                }
-                if(i == 1) continue;
-                String prevEmail = account.get(i - 1);
-                graph.get(email).add(prevEmail);
-                graph.get(prevEmail).add(email);
+        int res = 0;
+        for(int i = 0; i < 4; i++){
+            int nr = r + rOffsets[i];
+            int nc = c + cOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if(matrix[nr][nc] > matrix[r][c]){
+                res = Math.max(res, dfs(nr,nc));
             }
         }
-        List<List<String>> res = new ArrayList<>();
-        for(List<String> account : accounts){
-            for(int i = 1; i < account.size(); i++){
-                String email = account.get(i);
-                if(!visited.contains(email)){
-                    temp = new ArrayList<>();
-                    dfs(email);
-                    // sort
-                    Collections.sort(temp);
-                    // add name
-                    temp.add(0, account.get(0));
-                    // record res
-                    res.add(temp);
-                }
-            }
-        }
+        res += 1;
+        memo[r][c] = res;
         return res;
     }
-    public void dfs(String email){
-        if(visited.contains(email)){
-            return;
-        }
-        visited.add(email);
-        temp.add(email);
-        for(String nextEmail : graph.get(email)){
-            dfs(nextEmail);
-        }
-    }
-    
 }
 ```
 
-
-
-### 399. Evaluate Division
+### 399. Evaluate Division(graph: weight-edges)
 
 ```java
 class Solution {
@@ -3226,115 +3319,23 @@ class Solution {
         return res;
     }
     public double dfs(String src, String dest){
-        if(visited.contains(src)){
-            return -1.0;
-        }
         if(graph.get(src).containsKey(dest)){
             return graph.get(src).get(dest);
         }
         visited.add(src);
         HashMap<String, Double> neighbors = graph.get(src);
         for(String next : neighbors.keySet()){
-            double nextRes = dfs(next, dest);
-            if(nextRes != -1.0){
-                return neighbors.get(next) * nextRes;
+            if(!visited.contains(next)){
+                double nextRes = dfs(next, dest);
+                if(nextRes != -1.0){
+                    double res = neighbors.get(next) * nextRes;
+                    graph.get(src).put(dest, res);
+                    return res;
+                }
             }
         }
         return -1.0;
     }
-}
-```
-
-
-
-### 323. Number of Connected Components in an Undirected Graph
-
-```java
-class Solution {
-    HashSet<Integer> visited = new HashSet<>();
-    HashMap<Integer, Set<Integer>> graph = new HashMap<>();
-    public int countComponents(int n, int[][] edges) {
-        for(int[] e : edges){
-            int src = e[0];
-            int dest = e[1];
-            graph.putIfAbsent(src, new HashSet<>());
-            graph.get(src).add(dest);
-            graph.putIfAbsent(dest, new HashSet<>());
-            graph.get(dest).add(src);
-        }
-        int res = 0;
-        for(int i = 0; i < n; i++){
-            if(!visited.contains(i)){
-                dfs(i);
-                res += 1;
-            }
-        }
-        return res;
-    }
-    public void dfs(int i){
-        if(visited.contains(i))
-            return;
-        visited.add(i);
-        if(graph.containsKey(i)){
-            for(Integer neighbor : graph.get(i)){
-                dfs(neighbor);
-            }
-        }
-        
-    }
-}
-```
-
-### 1202. Smallest String With Swaps
-
-```java
-class Solution {
-    boolean[] visited;
-    HashMap<Integer, Set<Integer>> graph = new HashMap<>();
-    HashMap<Integer, Integer> indexToComponent = new HashMap<>();
-    HashMap<Integer, PriorityQueue<Character>>   = new HashMap<>();
-    public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
-        int n = s.length();
-        visited = new boolean[n];
-        // build the graph
-        for(List<Integer> p : pairs){
-            int x = p.get(0);
-            int y = p.get(1);
-            graph.putIfAbsent(x, new HashSet<>());
-            graph.get(x).add(y);
-            graph.putIfAbsent(y, new HashSet<>());
-            graph.get(y).add(x);
-        }
-        // union the component
-        for(int i = 0; i < n; i++){
-            if(!visited[i]){
-                dfs(i,i);
-            }
-        }
-        for(int i = 0; i < n; i++){
-            componentToSet.putIfAbsent(indexToComponent.get(i), new PriorityQueue<>());
-            componentToSet.get(indexToComponent.get(i)).offer(s.charAt(i));
-        }
-        String res = "";
-        for(int i = 0; i < n; i++){
-            res += componentToSet.get(indexToComponent.get(i)).poll();
-        }
-        return res;
-    }
-    public void dfs(int i, int j){
-        if(visited[j]){
-            return;
-        }
-        visited[j] = true;
-        indexToComponent.put(j,i);
-        if(graph.containsKey(j)){
-            for(int neighbor : graph.get(j)){
-                dfs(i,neighbor);
-            }
-        }
-            
-    }
-    
 }
 ```
 
@@ -3374,388 +3375,398 @@ class Solution {
 }
 ```
 
-## Tree
+## 
 
-### 226. Invert Binary Tree
+## Connected Component
 
-```java
-class Solution {
-    public TreeNode invertTree(TreeNode root) {
-        return helper(root);
-    }
-    private TreeNode helper(TreeNode root){
-        if(root == null){
-            return root;
-        }
-        TreeNode l = helper(root.left);
-        TreeNode r = helper(root.right);
-        root.left = r;
-        root.right = l;
-        return root;
-    }
-}
-```
-
-### 101. Symmetric Tree
-
-```java
-class Solution {
-    public boolean isSymmetric(TreeNode root) {
-        if(root == null) return true;
-        return helper(root.left, root.right);
-    }
-    private boolean helper(TreeNode leftTree, TreeNode rightTree){
-        if(leftTree == null && rightTree == null){
-            return true;
-        }
-        if(leftTree == null || rightTree == null){
-            return false;
-        }
-        return leftTree.val == rightTree.val 
-          && helper(leftTree.left, rightTree.right) 
-          && helper(leftTree.right, rightTree.left);
-    }
-}
-```
-
-
-
-### 938. Range Sum of BST
-
-```java
-class Solution {
-    int L, R;
-    public int rangeSumBST(TreeNode root, int L, int R) {
-        this.L = L;
-        this.R = R;
-        return dfs(root);
-    }
-    private int dfs(TreeNode node){
-        if(node == null) return 0;
-        if(L <= node.val && node.val <= R){
-            return node.val + dfs(node.left) + dfs(node.right);
-        }
-        else if (node.val < L)
-            return dfs(node.right);
-        else
-            return dfs(node.left);
-    }
-}
-```
-
-
-
-### 98. Validate Binary Search Tree
-
-not just check root.val with left.val and right.val
-
-use an interval [low,high] to make sure root inside this interval
-
-```java
-class Solution {
-    public boolean isValidBST(TreeNode root) {
-        return helper(root, Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-    private boolean helper(TreeNode root, int low, int high){
-        if(root == null) return true;
-        if(root.val <= low || root.val >= high)
-            return false;
-        if(!helper(root.left, low, root.val))
-            return false;
-        if(!helper(root.right, root.val, high))
-            return false;
-        return true;
-    }
-}
-```
-
-
-
-To avoid Integer.MAX
-
-```java
-class Solution {
-    public boolean isValidBST(TreeNode root) {
-        return helper(root, null, null);
-    }
-    private boolean helper(TreeNode root, Integer low, Integer high){
-        if(root == null) return true;
-        if((low!=null && root.val <= low) || (high!=null&&root.val >= high))
-            return false;
-        if(!helper(root.left, low, root.val))
-            return false;
-        if(!helper(root.right, root.val, high))
-            return false;
-        return true;
-    }
-}
-```
-
-
-
-###  366. Find Leaves of Binary Tree
-
-The key is to find the height of each node. Here the definition of height is:
-The height of a node is the number of edges from the node to the deepest leaf. 
-
-The height of a node is also the its index in the result list (res)
-
-```java
-class Solution {
-    List<List<Integer>> res = new ArrayList<>();
-    public List<List<Integer>> findLeaves(TreeNode root) {
-        height(root);
-        return res;
-    }
-    private int height(TreeNode root){
-        if(root == null)
-            return -1;
-        int h = 1 + Math.max(height(root.left), height(root.right));
-        if(h >= res.size()) res.add(new ArrayList<>());
-        res.get(h).add(root.val);
-        return h;
-    }
-}
-```
-
-### 236. Lowest Common Ancestor of a Binary Tree
-
-```java
-class Solution {
-    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
-    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
-        dfs(root, null);
-        HashSet<TreeNode> set = new HashSet<>();
-        while(p != null){
-            set.add(p);
-            p = parent.get(p);
-        }
-        while(!set.contains(q))
-            q = parent.get(q);
-        
-        return q;
-    }
-    private void dfs(TreeNode node, TreeNode par){
-        if(node == null)
-            return;
-        parent.put(node, par);
-        dfs(node.left, node);
-        dfs(node.right, node);
-    }
-}
-```
-
-
-
-### 297. Serialize and Deserialize Binary Tree
-
-```java
-String[] dataSplit = data.split(",");
-List<String> dataList = new ArrayList<>(Arrays.asList(dataSplit));
-int val = Integer.valueOf(data.get(0));
-```
-
-
-
-```java
-public class Codec {
-
-    // Encodes a tree to a single string.
-    public String serialize(TreeNode root) {
-        return rSerialize(root, "");
-    }
-    private String rSerialize(TreeNode root, String temp){
-        if(root == null)
-            temp += "null,";
-        else {
-            temp += root.val + ",";
-            temp = rSerialize(root.left, temp);
-            temp = rSerialize(root.right, temp);
-        }
-        
-        return temp;
-    }
-
-    // Decodes your encoded data to tree.
-    public TreeNode deserialize(String data) {
-        String[] dataSplit = data.split(",");
-        List<String> dataList = new ArrayList<>(Arrays.asList(dataSplit));
-        return rDeserialize(dataList);
-    }
-    
-    private TreeNode rDeserialize(List<String> data){
-        if(data.get(0).equals("null")){
-            data.remove(0);
-            return null;
-        }
-        int val = Integer.valueOf(data.get(0));
-        data.remove(0);
-        TreeNode root = new TreeNode(val);
-        root.left = rDeserialize(data);
-        root.right = rDeserialize(data);
-        return root;
-    }
-}
-```
-
-### 105. Construct Binary Tree from Preorder and Inorder Traversal
-
-The first element in the *preorder* list is a root. This root splits *inorder* list into left and right subtrees.
-
-Trick part is to update start and end of preorder and inorder
-
-we use instart and inend to exist, use prestart to get the value of root, so we don't need preend
-
-![IMG_1D73F62B8D43-1](/Users/yixing/Documents/New/WorkSpace/Notebook/images/IMG_1D73F62B8D43-1.jpeg)
+### 200. Number of Islands
 
 ```JAVA
 class Solution {
-    HashMap<Integer, Integer> val2Index = new HashMap<>();
-    int[] preorder;
-    int[] inorder;
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-        this.preorder = preorder;
-        this.inorder = inorder;
-        for(int i = 0; i < inorder.length; i++){
-            val2Index.put(inorder[i], i);
-        }
-        return helper(0,0,inorder.length-1);
+    char[][] grid;
+    public int numIslands(char[][] grid) {
+        this.grid = grid;
+        int count = 0;
+        for(int r = 0; r < grid.length; r++)
+            for(int c = 0; c < grid[0].length; c++)
+                if(grid[r][c] == '1'){
+                    count++;
+                    dfs(r,c);
+                }
+        return count;
     }
-    private TreeNode helper(int preStart, int inStart, int inEnd){
-        if(inStart > inEnd)
-            return null;
-        int val = preorder[preStart];
-        TreeNode root = new TreeNode(val);
-        int index = val2Index.get(val);
-        root.left = helper(preStart+1,inStart,index-1);
-        root.right = helper(preStart+index-inStart + 1,index+1,inEnd);
-        return root;
+    private void dfs(int r, int c){
+        if(r<0 || r==grid.length||c<0||c==grid[0].length||grid[r][c]=='0')
+            return;
+        
+        grid[r][c] = '0';
+        int[] rowOffsets = new int[]{0,0,1,-1};
+        int[] colOffsets = new int[]{1,-1,0,0};
+        for(int i = 0; i < 4; i++){
+            dfs(r + rowOffsets[i], c + colOffsets[i]);
+        }
     }
 }
 ```
 
-### 894. All Possible Full Binary Trees
+```java
+class Solution {
+    char[][] grid;
+    int R;
+    int C;
+    boolean[][] visited;
+    int[] rowOffsets = new int[]{0,0,1,-1};
+    int[] colOffsets = new int[]{1,-1,0,0};
+    public int numIslands(char[][] grid) {
+        if(grid.length == 0) return 0;
+        this.grid = grid;
+        R = grid.length;
+        C = grid[0].length;
+        visited = new boolean[R][C];
+        
+        int count = 0;
+        for(int r = 0; r < R; r++)
+            for(int c = 0; c < C; c++)
+                if(!visited[r][c]&&grid[r][c]=='1'){
+                    count++;
+                    dfs(r,c);
+                }
+        return count;
+    }
+    private void dfs(int r, int c){
+        visited[r][c]=true;
+        for(int i = 0; i < 4; i++){
+            int nr = r + rowOffsets[i];
+            int nc = c + colOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if(!visited[nr][nc]&&grid[nr][nc]=='1')
+                dfs(nr, nc);
+        }
+    }
+}
+```
 
-use memo to record result of each N
-
-if there are N ndoe, x node in left subtree,  then there are N - 1 - x right subtree
-
-permutation for each possible left tree and right tree
+### 695. Max Area of Island
 
 ```java
 class Solution {
-    HashMap<Integer, List<TreeNode>> memo = new HashMap<>();
-    public List<TreeNode> allPossibleFBT(int N) {
-        if(!memo.containsKey(N)){
-            List<TreeNode> res = new LinkedList<>();
-            if(N == 1)
-                res.add(new TreeNode(0));
-            else if(N%2 == 1){
-                for(int x = 0; x < N; x++){
-                    int y = N - 1 - x;
-                    for(TreeNode left: allPossibleFBT(x)){
-                        for(TreeNode right: allPossibleFBT(y)){
-                            TreeNode root = new TreeNode(0);
-                            root.left = left;
-                            root.right = right;
-                            res.add(root);
-                        }
-                    }
+    int[][] grid;
+    int R;
+    int C;
+    boolean[][] visited;
+    int[] rOffsets = new int[]{0,0,1,-1};
+    int[] cOffsets = new int[]{1,-1,0,0};
+    int count = 0;
+
+    public int maxAreaOfIsland(int[][] grid) {
+        this.grid = grid;
+        R = grid.length;
+        C = grid[0].length;
+        visited = new boolean[R][C];
+        int res = 0;
+        for(int r = 0; r < R; r++){
+            for(int c = 0; c < C; c++){
+                if(grid[r][c] == 1 && !visited[r][c]){
+                    helper(r,c);
+                    res = Math.max(res, count);
+                    count = 0;
                 }
             }
-            memo.put(N, res);
         }
-        return memo.get(N);
+        return res;
+    }
+    private void helper(int r, int c){
+        visited[r][c] = true;
+        count+=1;
+        for(int i = 0; i < 4; i++){
+            int nr = r + rOffsets[i];
+            int nc = c + cOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if(grid[nr][nc] == 1 && !visited[nr][nc])
+                helper(nr, nc);
+        }
     }
 }
 ```
 
+### 547. Friend Circles
 
+number of connected components in an undirected graph
 
-## Update different res when dfs
-
-### 543. Diameter of Binary Tree
+start from every node which isn't visited right now and apply DFS starting with it. We increment the count of connected components for every new starting node.
 
 ```java
 class Solution {
-    int res = 1;
-    public int diameterOfBinaryTree(TreeNode root) {
-        dfs(root);
-        return res - 1;
+    boolean[] visited;
+    int[][] M;
+    int n;
+    public int findCircleNum(int[][] M) {
+        this.M = M;
+        n = M.length;
+        visited = new boolean[n];
+        int count = 0;
+        for(int i = 0; i < n; i++){
+            if(!visited[i]){
+                helper(i);
+                count++;
+            }
+        }
+        return count;
     }
-    private int dfs(TreeNode root){
-        if(root == null)
-            return 0;
-        int l = dfs(root.left);
-        int r = dfs(root.right);
-        res = Math.max(res, l + r + 1);
-        return Math.max(l,r) + 1;
+    private void helper(int i){
+        visited[i] = true;
+        for(int j = 0; j < n; j++){
+            if(M[i][j] == 1 && !visited[j]){
+                helper(j);
+            }
+        }
     }
 }
 ```
 
+### 417. Pacific Atlantic Water Flow
+
+Start from ocean instead of each point in matrix, reduce time from n^2 to n
+
+```java
+int[][] Offsets = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
+```
 
 
-### 124. Binary Tree Maximum Path Sum
-
-define the helper as: return the max gain the root and one/zero of its subtrees could add to the current path: (root) or (root-left) or (root-right)
-
-after implement the recurrsion, use maxSum to record(root+left+right)
 
 ```java
 class Solution {
-    int maxSum = Integer.MIN_VALUE;
-    public int maxPathSum(TreeNode root) {
-        helper(root);
-        return maxSum;
-    }
-    private int helper(TreeNode root){
-        if(root == null)
-            return 0;
-        int left = Math.max(0,helper(root.left));
-        int right = Math.max(0,helper(root.right));
+    int[][] matrix;
+    int R;
+    int C;
+    int[] rOffsets = new int[]{0,0,1,-1};
+    int[] cOffsets = new int[]{1,-1,0,0};
+    public List<List<Integer>> pacificAtlantic(int[][] matrix) {
+        if(matrix == null || matrix.length == 0) return new ArrayList<>();
+        this.matrix = matrix;
+        R = matrix.length;
+        C = matrix[0].length;
+        boolean[][] pacific = new boolean[R][C];
+        boolean[][] atalantic = new boolean[R][C];
         
-        maxSum = Math.max(maxSum, root.val + left + right);
+        for(int r = 0; r < R; r++){
+            helper(r, 0,  pacific);
+            helper(r, C - 1,  atalantic);
+        }
+        for(int c = 0; c < C; c++){
+            helper(0, c, pacific);
+            helper(R - 1, c,  atalantic);
+        }
         
-        return root.val + Math.max(left, right);
+        List<List<Integer>> res = new ArrayList<>();
+        for(int r = 0; r < R; r++){
+            for(int c = 0; c < C; c++){
+                if(pacific[r][c] && atalantic[r][c]){
+                    res.add(Arrays.asList(r,c));
+                }
+            }
+        }
+        return res;
+        
+    }
+    private void helper(int r, int c, boolean[][] visited){
+        visited[r][c] = true;
+        for(int i = 0; i < 4; i++){
+            int nr = r + rOffsets[i];
+            int nc = c + cOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if(!visited[nr][nc] && matrix[nr][nc] >= matrix[r][c])
+                helper(nr, nc, visited);
+        }
     }
 }
 ```
 
-### 687. Longest Univalue Path
-
-Let `dfs(node)` be the length of the longest arrow that extends from the `node`. That will be `1 + dfs(node.left)` if `node.left` exists and has the same value as `node`. 
-
-`arrowLeft = left + 1(if node.val = left.val) / 0; arrowRight = right + 1 / 0`
-
-`return max(arrowLeft, arrowRight)`
-
-While we are computing arrow lengths, each candidate answer will be the sum of the arrows in both directions from that node. We record these candidate answers and return the best one.
-
-so update the ans as `ans = max(ans, arrowLeft + arrowRight)`
+### 130. Surrounded Regions
 
 ```java
 class Solution {
-    int ans;
-    public int longestUnivaluePath(TreeNode root) {
-        ans = 0;
-        dfs(root);
-        return ans;
+    char[][] Board;
+    int R;
+    int C;
+    boolean[][] visited;
+    int[] rOffsets = new int[]{1,-1,0,0};
+    int[] cOffsets = new int[]{0,0,1,-1};
+    public void solve(char[][] board) {
+        if(board.length == 0) return;
+        Board = board;
+        R = board.length;
+        C = board[0].length;
+        visited = new boolean[R][C];
+        for(int r = 0; r < R; r++){
+            dfs(r,0);
+            dfs(r,C-1);
+        }
+        for(int c = 0; c < C; c++){
+            dfs(0,c);
+            dfs(R-1,c);
+        }
+        for(int r = 0; r < R; r++){
+            for(int c = 0; c < C; c++){
+                if(board[r][c] == 'O' && !visited[r][c])
+                    board[r][c] = 'X';
+            }
+        }
     }
-    private int dfs(TreeNode node){
-        if(node == null)
-            return 0;
-        int left = dfs(node.left);
-        int right = dfs(node.right);
-        int arrowLeft = 0, arrowRight = 0;
-        if (node.left != null && node.val == node.left.val){
-            arrowLeft = left + 1;
+    public void dfs(int r, int c){
+        visited[r][c] = true;
+        for(int i = 0; i < 4; i++){
+            int nr = r + rOffsets[i];
+            int nc = c + cOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if(!visited[nr][nc] && Board[r][c] == 'O')
+                dfs(nr, nc);
         }
-        if (node.right != null && node.val == node.right.val){
-            arrowRight = right + 1;
+    }
+}
+```
+
+### 323. Number of Connected Components in an Undirected Graph(UF)
+
+```java
+class Solution {
+    HashSet<Integer> visited = new HashSet<>();
+    HashMap<Integer, Set<Integer>> graph = new HashMap<>();
+    public int countComponents(int n, int[][] edges) {
+        for(int[] e : edges){
+            int src = e[0];
+            int dest = e[1];
+            graph.putIfAbsent(src, new HashSet<>());
+            graph.get(src).add(dest);
+            graph.putIfAbsent(dest, new HashSet<>());
+            graph.get(dest).add(src);
         }
-        ans = Math.max(ans, arrowLeft + arrowRight);
-        return Math.max(arrowLeft, arrowRight);
+        int res = 0;
+        for(int i = 0; i < n; i++){
+            if(!visited .contains(i)){
+                dfs(i);
+                res += 1;
+            }
+        }
+        return res;
+    }
+    public void dfs(int i){
+        visited.add(i);
+        if(graph.containsKey(i)){
+            for(Integer neighbor : graph.get(i)){
+                if(!visited.contains(neighbor))
+                    dfs(neighbor);
+            }
+        }
+    }
+}
+```
+
+### 
+
+### 721. Accounts Merge(UF)
+
+```java
+class Solution {
+    List<String> temp;
+    HashMap<String, Set<String>> graph = new HashMap<>();
+    Set<String> visited = new HashSet<>();;
+    public List<List<String>> accountsMerge(List<List<String>> accounts) {
+        for(List<String> account : accounts){
+            for(int i = 1; i < account.size(); i++){
+                String email = account.get(i);
+                graph.putIfAbsent(email, new HashSet<>());
+                if(i > 1){
+                    String prevEmail = account.get(i - 1);
+                    graph.get(email).add(prevEmail);
+                    graph.get(prevEmail).add(email);
+                }
+            }
+        }
+        List<List<String>> res = new ArrayList<>();
+        for(List<String> account : accounts){
+            for(int i = 1; i < account.size(); i++){
+                String email = account.get(i);
+                if(!visited.contains(email)){
+                    temp = new ArrayList<>();
+                    dfs(email);
+                    // sort
+                    Collections.sort(temp);
+                    // add name
+                    temp.add(0, account.get(0));
+                    // record res
+                    res.add(temp);
+                }
+            }
+        }
+        return res;
+    }
+    public void dfs(String email){
+        visited.add(email);
+        temp.add(email);
+        for(String nextEmail : graph.get(email)){
+            if(!visited.contains(nextEmail))
+                dfs(nextEmail);
+        }
+    }
+}
+```
+
+
+
+
+
+### 1202. Smallest String With Swaps(UF)
+
+```java
+class Solution {
+    String s;
+    boolean[] visited;
+    HashMap<Integer, Set<Integer>> graph = new HashMap<>();
+    HashMap<Integer, Integer> indexToComponent = new HashMap<>();
+    HashMap<Integer, PriorityQueue<Character>> componentToSet  = new HashMap<>();
+    int currentIndex;
+    public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
+        this.s = s;
+        int n = s.length();
+        visited = new boolean[n];
+        // build the graph
+        for(List<Integer> p : pairs){
+            int x = p.get(0);
+            int y = p.get(1);
+            graph.putIfAbsent(x, new HashSet<>());
+            graph.get(x).add(y);
+            graph.putIfAbsent(y, new HashSet<>());
+            graph.get(y).add(x);
+        }
+        // union the component
+        for(int i = 0; i < n; i++){
+            if(!visited[i]){
+                currentIndex = i;
+                componentToSet.put(i, new PriorityQueue<>());
+                dfs(i);
+            }
+        }
+        String res = "";
+        for(int i = 0; i < n; i++){
+            res += componentToSet.get(indexToComponent.get(i)).poll();
+        }
+        return res;
+    }
+    public void dfs(int i){
+        visited[i] = true;
+        indexToComponent.put(i,currentIndex);
+        componentToSet.get(currentIndex).offer(s.charAt(i));
+        if(graph.containsKey(i)){
+            for(int neighbor : graph.get(i)){
+                if(!visited[neighbor])
+                    dfs(neighbor);
+            }
+        } 
     }
 }
 ```
