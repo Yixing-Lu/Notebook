@@ -2370,6 +2370,44 @@ class Solution {
 }
 ```
 
+### 863. All Nodes Distance K in Binary Tree
+
+```java
+class Solution {
+    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
+    HashSet<TreeNode> visited = new HashSet<>();
+    List<Integer> res = new ArrayList<>();
+    int K;
+    public List<Integer> distanceK(TreeNode root, TreeNode target, int K) {
+        this.K = K;
+        findParent(root, null);
+        dfs(target,0);
+        return res;
+    }
+    
+    private void findParent(TreeNode node, TreeNode par){
+        if (node == null){
+            return;
+        }
+        parent.put(node, par);
+        findParent(node.left, node);
+        findParent(node.right, node);
+    }
+    private void dfs(TreeNode root, int dist){
+        if(dist == K){
+            res.add(root.val);
+            return;
+        }
+        visited.add(root);
+        for(TreeNode neighbor : Arrays.asList(root.left, root.right, parent.get(root))){
+            if(neighbor != null && !visited.contains(neighbor)){
+                dfs(neighbor, dist + 1);
+            }
+        }
+    }
+}
+```
+
 
 
 ### 297. Serialize and Deserialize Binary Tree
@@ -2547,7 +2585,7 @@ class Solution {
 }
 ```
 
-### 
+
 
 ### 124. Binary Tree Maximum Path Sum
 
@@ -3889,154 +3927,7 @@ class Solution {
 
 
 
-### 127. Word Ladder
 
-1. Do the pre-processing on the given `wordList` and find all the possible generic/intermediate states. Save these intermediate states in a dictionary with key as the intermediate word and value as the list of words which have the same intermediate word.
-2. Push a tuple containing the `beginWord` and `1` in a queue. The `1` represents the level number of a node. We have to return the level of the `endNode` as that would represent the shortest sequence/distance from the `beginWord`.
-3. To prevent cycles, use a visited dictionary.
-4. While the queue has elements, get the front element of the queue. Let's call this word as `current_word`.
-5. Find all the generic transformations of the `current_word` and find out if any of these transformations is also a transformation of other words in the word list. This is achieved by checking the `all_combo_dict`.
-6. The list of words we get from `all_combo_dict` are all the words which have a common intermediate state with the `current_word`. These new set of words will be the adjacent nodes/words to `current_word` and hence added to the queue.
-7. Hence, for each word in this list of intermediate words, append `(word, level + 1)` into the queue where `level` is the level for the `current_word`.
-8. Eventually if you reach the desired word, its level would represent the shortest transformation sequence length.
-
-```java
-class Solution {
-    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
-        int L = beginWord.length();
-        // preprocess
-        HashMap<String, List<String>> pattern2Comb = new HashMap<>();
-        for(String word: wordList){
-            for(int i = 0; i < L; i++){
-                String pattern = word.substring(0,i) + "*" + word.substring(i+1);
-                List<String> comb = pattern2Comb.getOrDefault(pattern, new LinkedList<>());
-                comb.add(word);
-                pattern2Comb.put(pattern, comb);
-            }
-        }
-        // bfs
-        Queue<Pair<String, Integer>> queue = new LinkedList<>();
-        HashSet<String> visited = new HashSet<>();
-        queue.offer(new Pair(beginWord, 1));
-        visited.add(beginWord);
-        while(!queue.isEmpty()){
-            Pair<String, Integer> current = queue.poll();
-            String currentWord = current.getKey();
-            Integer level = current.getValue();
-          	// match
-            if(currentWord.equals(endWord))
-                return level;
-            for(int i = 0; i < L; i++){
-                String pattern = currentWord.substring(0,i) + "*" + currentWord.substring(i+1);
-                List<String> allComb = pattern2Comb.getOrDefault(pattern, new ArrayList<>());
-                for(String nextWord: allComb){
-                    if(!visited.contains(nextWord)){
-                        queue.offer(new Pair(nextWord,level+1));
-                        visited.add(nextWord);
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-}
-```
-
-
-
-### 314. Binary Tree Vertical Order Traversal
-
-we create a hash table named `columnTable` to keep track of the results.
-
-At each iteration within the BFS, we pop out an element from the queue. The element consists of a `node` and its corresponding `column` index. If the node is not empty, we then populate the `columnTable` with the value of the node. Subsequently, we then put its child nodes along with their respective column indices (*i.e.* `column-1` and `column+1`) into the queue.
-
-We then sort the hash table by its keys, *i.e.* `column` index in ascending order. And finally we return the results *column by column*.
-
-```java
-class Solution {
-    public List<List<Integer>> verticalOrder(TreeNode root) {
-        if(root == null) return new ArrayList<>();
-        HashMap<Integer, List<Integer>> columnTable = new HashMap<>();
-        Queue<Pair<TreeNode, Integer>> queue = new LinkedList<>();
-        queue.offer(new Pair(root, 0));
-        while(!queue.isEmpty()){
-            Pair<TreeNode, Integer> pair = queue.poll();
-            TreeNode node = pair.getKey();
-            Integer col = pair.getValue();
-            if(!columnTable.containsKey(col))
-                columnTable.put(col, new ArrayList<>());
-            columnTable.get(col).add(node.val);
-            if(node.left != null){
-                queue.offer(new Pair(node.left, col - 1));
-            }
-            if(node.right != null){
-                queue.offer(new Pair(node.right, col + 1));
-            }
-        }
-        List<Integer> cols = new ArrayList<>(columnTable.keySet());
-        Collections.sort(cols);
-        List<List<Integer>> res = new ArrayList<>();
-        for(int col: cols){
-            res.add(new ArrayList<>(columnTable.get(col)));
-        }
-        return res;
-    }
-}
-```
-
-
-
-### 863. All Nodes Distance K in Binary Tree
-
-We first do a depth first search where we annotate every node with information about it's parent.
-
-After, we do a breadth first search to find all nodes a distance `K` from the `target`.
-
-```java
-class Solution {
-    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
-    public List<Integer> distanceK(TreeNode root, TreeNode target, int K) {
-        List<Integer> res = new ArrayList<>();
-        // find parents
-        helper(root, null);
-        // bfs
-        Queue<Pair<TreeNode, Integer>> queue = new LinkedList<>();
-        HashSet<TreeNode> visited = new HashSet<>();
-        queue.offer(new Pair(target, 0));
-        visited.add(target);
-        while(!queue.isEmpty()){
-            int size = queue.size();
-            int level = 0;
-            for(int i = 0; i < size; i++){
-                Pair<TreeNode, Integer> pair = queue.poll();
-                TreeNode node = pair.getKey();
-                level = pair.getValue();
-                if(level == K){
-                    res.add(node.val);
-                }
-                for(TreeNode next: Arrays.asList(node.left, node.right, parent.get(node))){
-                    if(next != null && !visited.contains(next)){
-                        queue.offer(new Pair(next,level+1));
-                        visited.add(next);
-                    }
-                }
-            }
-            if(level == K)
-                return res;
-        }
-        return new ArrayList<>();
-    }
-    
-    private void helper(TreeNode node, TreeNode par){
-        if (node == null){
-            return;
-        }
-        parent.put(node, par);
-        helper(node.left, node);
-        helper(node.right, node);
-    }
-}
-```
 
 
 
@@ -4144,13 +4035,15 @@ class Solution {
             for(int i = 0; i < size; i++){
                 int[] curr = q.poll();
                 for(int j = 0; j < 4; j++){
-                    int newR = curr[0] + rOffsets[j];
-                    int newC = curr[1] + cOffsets[j];
-                    if(newR >= 0 && newR < R && newC >= 0 && newC < C && !visited[newR][newC]){
-                        if(A[newR][newC] == 1)
+                    int nr = curr[0] + rOffsets[j];
+                    int nc = curr[1] + cOffsets[j];
+                    if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                        continue;
+                    if(!visited[nr][nc]){
+                        if(A[nr][nc] == 1)
                             return step;
-                        q.offer(new int[]{newR,newC});
-                        visited[newR][newC] = true;
+                        q.offer(new int[]{nr,nc});
+                        visited[nr][nc] = true;
                     }
                 }
             }
@@ -4159,18 +4052,176 @@ class Solution {
         return -1;
     }
     private void dfs(int r, int c){
-        if(r < 0 || r >= R || c < 0 || c >= C || A[r][c] == 0 || visited[r][c])
-            return;
         q.offer(new int[]{r,c});
         visited[r][c] = true;
         for(int i = 0; i < 4; i++){
-            int newR = r + rOffsets[i];
-            int newC = c + cOffsets[i];
-            dfs(newR, newC);
+            int nr = r + rOffsets[i];
+            int nc = c + cOffsets[i];
+            if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if(A[nr][nc] == 1 && !visited[nr][nc])
+                dfs(nr, nc);
         }
     }
 }
 ```
+
+### 
+
+### 863. All Nodes Distance K in Binary Tree
+
+We first do a depth first search where we annotate every node with information about it's parent.
+
+After, we do a breadth first search to find all nodes a distance `K` from the `target`.
+
+```java
+class Solution {
+    HashMap<TreeNode, TreeNode> parent = new HashMap<>();
+    public List<Integer> distanceK(TreeNode root, TreeNode target, int K) {
+        List<Integer> res = new ArrayList<>();
+        // find parents
+        helper(root, null);
+        
+        // bfs
+        Queue<TreeNode> queue = new LinkedList<>();
+        HashSet<TreeNode> visited = new HashSet<>();
+        queue.offer(target);
+        visited.add(target);
+        int step = 0;
+        while(!queue.isEmpty() && step <= K){
+            int size = queue.size();
+            for(int i = 0; i < size; i++){
+                TreeNode node = queue.poll();
+                if(step == K){
+                    res.add(node.val);
+                }
+                for(TreeNode next: Arrays.asList(node.left, node.right, parent.get(node))){
+                    if(next != null && !visited.contains(next)){
+                        queue.offer(next);
+                        visited.add(next);
+                    }
+                }
+            }
+            step++;
+        }
+        return res;
+    }
+    
+    private void helper(TreeNode node, TreeNode par){
+        if (node == null){
+            return;
+        }
+        parent.put(node, par);
+        helper(node.left, node);
+        helper(node.right, node);
+    }
+}
+```
+
+### 314. Binary Tree Vertical Order Traversal(pair)
+
+we create a hash table named `columnTable` to keep track of the results.
+
+At each iteration within the BFS, we pop out an element from the queue. The element consists of a `node` and its corresponding `column` index. If the node is not empty, we then populate the `columnTable` with the value of the node. Subsequently, we then put its child nodes along with their respective column indices (*i.e.* `column-1` and `column+1`) into the queue.
+
+We then sort the hash table by its keys, *i.e.* `column` index in ascending order. And finally we return the results *column by column*.
+
+```java
+class Solution {
+    public List<List<Integer>> verticalOrder(TreeNode root) {
+        if(root == null) return new ArrayList<>();
+        HashMap<Integer, List<Integer>> columnTable = new HashMap<>();
+        Queue<Pair<TreeNode, Integer>> queue = new LinkedList<>();
+        queue.offer(new Pair(root, 0));
+        while(!queue.isEmpty()){
+            Pair<TreeNode, Integer> pair = queue.poll();
+            TreeNode node = pair.getKey();
+            Integer col = pair.getValue();
+            if(!columnTable.containsKey(col))
+                columnTable.put(col, new ArrayList<>());
+            columnTable.get(col).add(node.val);
+            if(node.left != null){
+                queue.offer(new Pair(node.left, col - 1));
+            }
+            if(node.right != null){
+                queue.offer(new Pair(node.right, col + 1));
+            }
+        }
+        List<Integer> cols = new ArrayList<>(columnTable.keySet());
+        Collections.sort(cols);
+        List<List<Integer>> res = new ArrayList<>();
+        for(int col: cols){
+            res.add(new ArrayList<>(columnTable.get(col)));
+        }
+        return res;
+    }
+}
+```
+
+### 
+
+### 127. Word Ladder(pair)
+
+1. Do the pre-processing on the given `wordList` and find all the possible generic/intermediate states. Save these intermediate states in a dictionary with key as the intermediate word and value as the list of words which have the same intermediate word.
+2. Push a tuple containing the `beginWord` and `1` in a queue. The `1` represents the level number of a node. We have to return the level of the `endNode` as that would represent the shortest sequence/distance from the `beginWord`.
+3. To prevent cycles, use a visited dictionary.
+4. While the queue has elements, get the front element of the queue. Let's call this word as `current_word`.
+5. Find all the generic transformations of the `current_word` and find out if any of these transformations is also a transformation of other words in the word list. This is achieved by checking the `all_combo_dict`.
+6. The list of words we get from `all_combo_dict` are all the words which have a common intermediate state with the `current_word`. These new set of words will be the adjacent nodes/words to `current_word` and hence added to the queue.
+7. Hence, for each word in this list of intermediate words, append `(word, level + 1)` into the queue where `level` is the level for the `current_word`.
+8. Eventually if you reach the desired word, its level would represent the shortest transformation sequence length.
+
+```java
+class Solution {
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        int L = beginWord.length();
+        // preprocess
+        HashMap<String, List<String>> pattern2Comb = new HashMap<>();
+        for(String word: wordList){
+            for(int i = 0; i < L; i++){
+                String pattern = word.substring(0,i) + "*" + word.substring(i+1);
+                pattern2Comb.putIfAbsent(pattern, new LinkedList<>());
+                pattern2Comb.get(pattern).add(word);
+            }
+        }
+        // bfs
+        Queue<Pair<String,String>> queue = new LinkedList<>();
+        HashSet<String> visited = new HashSet<>();
+        queue.offer(new Pair(beginWord,beginWord));
+        visited.add(beginWord);
+        int step = 0;
+        while(!queue.isEmpty()){
+            int size = queue.size();
+            for(int j = 0; j < size; j++){
+                Pair<String, String> current = queue.poll();
+                String currentWord = current.getKey();
+                String path = current.getValue();
+                // match
+                if(currentWord.equals(endWord)){
+                    System.out.println(path);
+                    return step + 1;
+                }
+                for(int i = 0; i < L; i++){
+                    String pattern = currentWord.substring(0,i) + "*" + currentWord.substring(i+1);
+                    if(pattern2Comb.containsKey(pattern)){
+                        for(String nextWord: pattern2Comb.get(pattern)){
+                            if(!visited.contains(nextWord)){
+                                queue.offer(new Pair(nextWord, path + ";" + nextWord));
+                                visited.add(nextWord);
+                            }
+                        }
+                    }
+                }
+            }
+            step++;
+            
+        }
+        return 0;
+    }
+}
+```
+
+
 
 ### 1102. Path With Maximum Minimum Value
 
@@ -4193,7 +4244,9 @@ class Solution {
             for(int i = 0; i < 4; i++){
                 int newR = r + rOffsets[i];
                 int newC = c + cOffsets[i];
-                if(newR >= 0 && newR < A.length && newC >= 0 && newC < A[0].length && A[newR][newC] != -1){
+                if(newR < 0 || newR >= A.length || newC < 0 || newC >= A[0].length)
+                    continue;
+                if( A[newR][newC] != -1){
                     pq.offer(new int[]{newR, newC, A[newR][newC]});
                     A[newR][newC] = -1;
                 }
@@ -4203,6 +4256,8 @@ class Solution {
     }
 }
 ```
+
+
 
 
 
@@ -4407,12 +4462,12 @@ class Solution {
                 for(int i = 0; i < 4; i++){
                     int nr = r + rOffsets[i];
                     int nc = c + cOffsets[i];
-                    if(nr >= 0 && nr < R && nc >= 0 && nc < C){
-                        if(matrix[nr][nc] > matrix[r][c]){
-                            indegree[nr][nc]--;
-                            if(indegree[nr][nc] == 0)
-                                q.offer(new int[]{nr,nc});
-                        }
+                    if(nr < 0 || nr >= R || nc < 0 || nc >= C)
+                        continue;
+                    if(matrix[nr][nc] > matrix[r][c]){
+                        indegree[nr][nc]--;
+                        if(indegree[nr][nc] == 0)
+                            q.offer(new int[]{nr,nc});
                     }
                 }
             }
@@ -4428,23 +4483,37 @@ class Solution {
 # Union Find(6)
 
 ```java
- class UnionFind {
+class UnionFind{
         int size;
         int[] parent;
-        public UnionFind(int size){
-            this.size = size;
-            this.parent = new int[size];
-            for(int i = 0; i < size; i++){
+        int[] rank;
+        public UnionFind(int n){
+            size = n;
+            parent = new int[n];
+            rank = new int[n];
+            for(int i = 0; i < n; i++){
                 parent[i] = i;
             }
         }
         public int find(int x){
-            if(parent[x] != x)
+            if(parent[x] != x){
                 parent[x] = find(parent[x]);
+            }
             return parent[x];
         }
         public void union(int x, int y){
-            parent[find(x)] = find(y);
+            int xp = find(x);
+            int yp = find(y);
+            if(xp == yp)
+                return;
+            if(rank[xp] < rank[yp])
+                parent[xp] = yp;
+            else if (rank[xp] > rank[yp])
+                parent[yp] = xp;
+            else {
+                parent[yp] = xp;
+                rank[xp] += 1;
+            }
         }
     }
 ```
